@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { HeroSection } from "@/components/ui/hero-section"
 import { RoleCard } from "@/components/layout/role-card"
 import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap } from "lucide-react"
+import { Link } from "react-router-dom"
 
 const Index = () => {
   const handleRoleSelect = (role: string) => {
@@ -36,9 +37,12 @@ const Index = () => {
               size="lg" 
               variant="secondary" 
               className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+              asChild
             >
-              View Demo
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <Link to="/demo">
+                View Demo
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
             <Button 
               size="lg" 

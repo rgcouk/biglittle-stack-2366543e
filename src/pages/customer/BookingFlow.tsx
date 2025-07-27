@@ -15,7 +15,7 @@ export default function BookingFlow() {
   const unit = {
     id: unitId,
     size: "5x10",
-    price: 65,
+    price: 48,
     type: "Standard"
   }
 
@@ -94,14 +94,14 @@ export default function BookingFlow() {
                       <Label htmlFor="email">Email Address</Label>
                       <Input id="email" type="email" placeholder="john@example.com" />
                     </div>
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" placeholder="(555) 123-4567" />
-                    </div>
-                    <div>
-                      <Label htmlFor="address">Address</Label>
-                      <Textarea id="address" placeholder="123 Main St, City, State 12345" />
-                    </div>
+                     <div>
+                       <Label htmlFor="phone">Phone Number</Label>
+                       <Input id="phone" placeholder="07700 123456" />
+                     </div>
+                     <div>
+                       <Label htmlFor="address">Address</Label>
+                       <Textarea id="address" placeholder="123 High Street, Manchester, M1 7ED" />
+                     </div>
                   </div>
                 )}
 
@@ -118,18 +118,18 @@ export default function BookingFlow() {
                     <div className="space-y-3">
                       <Label>Additional Options</Label>
                       <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox id="insurance" />
-                          <label htmlFor="insurance" className="text-sm">
-                            Storage insurance ($10/month)
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox id="lock" />
-                          <label htmlFor="lock" className="text-sm">
-                            High-security lock ($25 one-time)
-                          </label>
-                        </div>
+                         <div className="flex items-center space-x-2">
+                           <Checkbox id="insurance" />
+                           <label htmlFor="insurance" className="text-sm">
+                             Storage insurance (£8/month)
+                           </label>
+                         </div>
+                         <div className="flex items-center space-x-2">
+                           <Checkbox id="lock" />
+                           <label htmlFor="lock" className="text-sm">
+                             High-security lock (£18 one-time)
+                           </label>
+                         </div>
                       </div>
                     </div>
                   </div>
@@ -191,35 +191,35 @@ export default function BookingFlow() {
                     <span>Type</span>
                     <span>{unit.type}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Monthly Rent</span>
-                    <span>${unit.price}</span>
-                  </div>
-                </div>
-                
-                <hr />
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>First Month</span>
-                    <span>${unit.price}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Security Deposit</span>
-                    <span>${unit.price}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Admin Fee</span>
-                    <span>$25</span>
-                  </div>
-                </div>
-                
-                <hr />
-                
-                <div className="flex justify-between font-bold">
-                  <span>Total Due Today</span>
-                  <span>${unit.price * 2 + 25}</span>
-                </div>
+                   <div className="flex justify-between">
+                     <span>Monthly Rent</span>
+                     <span>£{unit.price}</span>
+                   </div>
+                 </div>
+                 
+                 <hr />
+                 
+                 <div className="space-y-2">
+                   <div className="flex justify-between">
+                     <span>First Month</span>
+                     <span>£{unit.price}</span>
+                   </div>
+                   <div className="flex justify-between">
+                     <span>Security Deposit</span>
+                     <span>£{unit.price}</span>
+                   </div>
+                   <div className="flex justify-between">
+                     <span>Admin Fee</span>
+                     <span>£18</span>
+                   </div>
+                 </div>
+                 
+                 <hr />
+                 
+                 <div className="flex justify-between font-bold">
+                   <span>Total Due Today</span>
+                   <span>£{unit.price * 2 + 18}</span>
+                 </div>
               </CardContent>
             </Card>
           </div>

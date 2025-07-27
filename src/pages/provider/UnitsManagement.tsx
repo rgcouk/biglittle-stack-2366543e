@@ -13,11 +13,11 @@ export default function UnitsManagement() {
   const [statusFilter, setStatusFilter] = useState("all")
 
   const units = [
-    { id: "U001", size: "5x5", type: "Climate Controlled", price: 45, status: "Available", floor: 1 },
-    { id: "U002", size: "5x10", type: "Standard", price: 65, status: "Occupied", floor: 1, customer: "John Smith" },
-    { id: "U003", size: "10x10", type: "Climate Controlled", price: 95, status: "Available", floor: 2 },
-    { id: "U004", size: "10x15", type: "Standard", price: 125, status: "Maintenance", floor: 2 },
-    { id: "U005", size: "10x20", type: "Climate Controlled", price: 175, status: "Occupied", floor: 1, customer: "Jane Doe" },
+    { id: "U001", size: "5x5", type: "Climate Controlled", price: 32, status: "Available", floor: 1 },
+    { id: "U002", size: "5x10", type: "Standard", price: 48, status: "Occupied", floor: 1, customer: "John Smith" },
+    { id: "U003", size: "10x10", type: "Climate Controlled", price: 68, status: "Available", floor: 2 },
+    { id: "U004", size: "10x15", type: "Standard", price: 85, status: "Maintenance", floor: 2 },
+    { id: "U005", size: "10x20", type: "Climate Controlled", price: 125, status: "Occupied", floor: 1, customer: "Jane Doe" },
   ]
 
   const filteredUnits = units.filter(unit => {
@@ -120,7 +120,7 @@ export default function UnitsManagement() {
                     <TableCell>{unit.size}</TableCell>
                     <TableCell>{unit.type}</TableCell>
                     <TableCell>{unit.floor}</TableCell>
-                    <TableCell>${unit.price}</TableCell>
+                    <TableCell>£{unit.price}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(unit.status)}>
                         {unit.status}

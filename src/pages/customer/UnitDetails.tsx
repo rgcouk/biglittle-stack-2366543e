@@ -10,14 +10,14 @@ export default function UnitDetails() {
   const unit = {
     id: unitId,
     size: "5x10",
-    price: 65,
+    price: 48,
     type: "Standard",
     features: ["Ground Floor", "Drive-Up Access", "24/7 Access"],
     available: true,
     floor: 1,
-    description: "Perfect for storing contents of a studio apartment or small office space. Easy drive-up access makes loading and unloading convenient.",
-    dimensions: "5 feet × 10 feet × 8 feet (height)",
-    squareFootage: "50 sq ft",
+    description: "Perfect for storing contents of a studio flat or small office space. Easy drive-up access makes loading and unloading convenient.",
+    dimensions: "1.5m × 3m × 2.4m (height)",
+    squareFootage: "4.6 sq m",
     images: ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg"]
   }
 
@@ -75,10 +75,10 @@ export default function UnitDetails() {
                     <span>{unit.type}</span>
                   </Badge>
                 </div>
-                <CardDescription className="text-lg">
-                  <span className="text-3xl font-bold text-primary">${unit.price}</span>
-                  <span className="text-sm text-muted-foreground">/month</span>
-                </CardDescription>
+                 <CardDescription className="text-lg">
+                   <span className="text-3xl font-bold text-primary">£{unit.price}</span>
+                   <span className="text-sm text-muted-foreground">/month</span>
+                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">{unit.description}</p>
@@ -137,10 +137,10 @@ export default function UnitDetails() {
               <CardContent className="space-y-4">
                 <div>
                   <h4 className="font-medium mb-2">Facility Address</h4>
-                  <p className="text-muted-foreground">
-                    123 Storage Way<br />
-                    Downtown City, ST 12345
-                  </p>
+                   <p className="text-muted-foreground">
+                     123 Storage Park<br />
+                     Manchester, M1 7ED
+                   </p>
                 </div>
                 <div>
                   <h4 className="font-medium mb-2">Access Hours</h4>

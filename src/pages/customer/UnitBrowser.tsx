@@ -18,7 +18,7 @@ export default function UnitBrowser() {
     {
       id: "U001",
       size: "5x5",
-      price: 45,
+      price: 32,
       type: "Standard",
       features: ["Ground Floor", "Drive-Up Access"],
       available: true,
@@ -28,7 +28,7 @@ export default function UnitBrowser() {
     {
       id: "U015",
       size: "5x5",
-      price: 55,
+      price: 38,
       type: "Climate Controlled",
       features: ["Climate Control", "Indoor Access"],
       available: true,
@@ -38,17 +38,17 @@ export default function UnitBrowser() {
     {
       id: "U025",
       size: "5x10",
-      price: 65,
+      price: 48,
       type: "Standard",
       features: ["Ground Floor", "Drive-Up Access"],
       available: true,
       floor: 1,
-      description: "Great for studio apartment contents or office storage"
+      description: "Great for studio flat contents or office storage"
     },
     {
       id: "U032",
       size: "5x10",
-      price: 75,
+      price: 52,
       type: "Climate Controlled",
       features: ["Climate Control", "Indoor Access", "24/7 Access"],
       available: true,
@@ -58,7 +58,7 @@ export default function UnitBrowser() {
     {
       id: "U045",
       size: "10x10",
-      price: 95,
+      price: 68,
       type: "Standard",
       features: ["Ground Floor", "Drive-Up Access", "Wide Door"],
       available: true,
@@ -68,7 +68,7 @@ export default function UnitBrowser() {
     {
       id: "U052",
       size: "10x10",
-      price: 115,
+      price: 78,
       type: "Climate Controlled",
       features: ["Climate Control", "Indoor Access", "Security Cameras"],
       available: false,
@@ -144,9 +144,9 @@ export default function UnitBrowser() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Prices</SelectItem>
-                      <SelectItem value="under-50">Under $50</SelectItem>
-                      <SelectItem value="50-100">$50 - $100</SelectItem>
-                      <SelectItem value="over-100">Over $100</SelectItem>
+                       <SelectItem value="under-50">Under £50</SelectItem>
+                       <SelectItem value="50-100">£50 - £100</SelectItem>
+                       <SelectItem value="over-100">Over £100</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -210,10 +210,10 @@ export default function UnitBrowser() {
                           <span>{unit.type}</span>
                         </Badge>
                       </div>
-                      <CardDescription>
-                        <span className="text-2xl font-bold text-primary">${unit.price}</span>
-                        <span className="text-sm text-muted-foreground">/month</span>
-                      </CardDescription>
+                       <CardDescription>
+                         <span className="text-2xl font-bold text-primary">£{unit.price}</span>
+                         <span className="text-sm text-muted-foreground">/month</span>
+                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-muted-foreground">{unit.description}</p>

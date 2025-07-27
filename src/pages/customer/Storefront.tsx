@@ -15,11 +15,11 @@ export default function CustomerStorefront() {
   ]
 
   const unitTypes = [
-    { size: "5x5", price: 45, description: "Perfect for seasonal items and small furniture", available: 8 },
-    { size: "5x10", price: 65, description: "Ideal for studio apartment or office contents", available: 12 },
-    { size: "10x10", price: 95, description: "Great for 1-2 bedroom home contents", available: 6 },
-    { size: "10x15", price: 125, description: "Suitable for 2-3 bedroom home contents", available: 4 },
-    { size: "10x20", price: 175, description: "Perfect for 3-4 bedroom home or vehicle storage", available: 3 },
+    { size: "5x5", price: 32, description: "Perfect for seasonal items and small furniture", available: 8 },
+    { size: "5x10", price: 48, description: "Ideal for studio flat or office contents", available: 12 },
+    { size: "10x10", price: 68, description: "Great for 1-2 bedroom home contents", available: 6 },
+    { size: "10x15", price: 85, description: "Suitable for 2-3 bedroom home contents", available: 4 },
+    { size: "10x20", price: 125, description: "Perfect for 3-4 bedroom home or vehicle storage", available: 3 },
   ]
 
   return (
@@ -62,7 +62,7 @@ export default function CustomerStorefront() {
             </Button>
             <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
               <Phone className="h-4 w-4 mr-2" />
-              Call (555) 123-4567
+              Call 0161 123 4567
             </Button>
           </div>
         </div>
@@ -81,8 +81,8 @@ export default function CustomerStorefront() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  123 Storage Way, Business District<br />
-                  Downtown City, ST 12345
+                  123 Storage Park, Business Estate<br />
+                  Manchester, M1 7ED
                 </p>
                 <Button variant="outline" className="w-full">
                   Get Directions
@@ -165,7 +165,7 @@ export default function CustomerStorefront() {
                     <Badge variant="secondary">{unit.available} available</Badge>
                   </div>
                   <CardDescription className="text-lg">
-                    <span className="text-2xl font-bold text-primary">${unit.price}</span>
+                    <span className="text-2xl font-bold text-primary">£{unit.price}</span>
                     <span className="text-sm text-muted-foreground">/month</span>
                   </CardDescription>
                 </CardHeader>
@@ -213,9 +213,9 @@ export default function CustomerStorefront() {
             <div>
               <h5 className="font-semibold mb-4">Contact</h5>
               <div className="space-y-2 text-muted-foreground">
-                <p>(555) 123-4567</p>
-                <p>info@premierstoragesolutions.com</p>
-                <p>123 Storage Way<br />Downtown City, ST 12345</p>
+                <p>0161 123 4567</p>
+                <p>info@premierstoragesolutions.co.uk</p>
+                <p>123 Storage Park<br />Manchester, M1 7ED</p>
               </div>
             </div>
           </div>

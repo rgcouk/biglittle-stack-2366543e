@@ -7,7 +7,7 @@ export default function ProviderDashboard() {
   const stats = [
     { title: "Total Units", value: "48", icon: Building2, change: "+2 this month" },
     { title: "Active Customers", value: "36", icon: Users, change: "+5 this week" },
-    { title: "Monthly Revenue", value: "$12,450", icon: DollarSign, change: "+15% from last month" },
+    { title: "Monthly Revenue", value: "£8,950", icon: DollarSign, change: "+15% from last month" },
     { title: "Occupancy Rate", value: "75%", icon: BarChart3, change: "+3% this month" },
   ]
 
