@@ -5,8 +5,19 @@ import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap } from "
 
 const Index = () => {
   const handleRoleSelect = (role: string) => {
-    console.log(`Selected role: ${role}`)
-    // TODO: Navigate to appropriate dashboard
+    switch (role) {
+      case "Platform Admin":
+        window.location.href = "/admin"
+        break
+      case "Storage Provider":
+        window.location.href = "/provider"
+        break
+      case "Customer Portal":
+        window.location.href = "/storefront"
+        break
+      default:
+        console.log(`Selected role: ${role}`)
+    }
   }
 
   return (
