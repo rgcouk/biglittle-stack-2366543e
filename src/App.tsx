@@ -3,6 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import AuthPage from "@/components/auth/AuthPage";
 import Index from "./pages/Index";
 import Demo from "./pages/Demo";
 import NotFound from "./pages/NotFound";
@@ -23,32 +26,67 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/demo" element={<Demo />} />
-          
-          {/* Storage Provider Dashboard Routes */}
-          <Route path="/provider" element={<ProviderDashboard />} />
-          <Route path="/provider/units" element={<UnitsManagement />} />
-          <Route path="/provider/customers" element={<CustomersManagement />} />
-          <Route path="/provider/billing" element={<BillingManagement />} />
-          <Route path="/provider/analytics" element={<ProviderAnalytics />} />
-          <Route path="/provider/customize" element={<SiteCustomization />} />
-          
-          {/* Customer-Facing Storefront Routes */}
-          <Route path="/storefront/:providerId?" element={<CustomerStorefront />} />
-          <Route path="/storefront/:providerId/units" element={<UnitBrowser />} />
-          <Route path="/storefront/:providerId/unit/:unitId" element={<UnitDetails />} />
-          <Route path="/storefront/:providerId/book/:unitId" element={<BookingFlow />} />
-          <Route path="/account" element={<CustomerAccount />} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/demo" element={<Demo />} />
+            
+            {/* Storage Provider Dashboard Routes */}
+            <Route path="/provider" element={
+              <ProtectedRoute requiredRole="provider">
+                <ProviderDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/units" element={
+              <ProtectedRoute requiredRole="provider">
+                <UnitsManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/customers" element={
+              <ProtectedRoute requiredRole="provider">
+                <CustomersManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/billing" element={
+              <ProtectedRoute requiredRole="provider">
+                <BillingManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/analytics" element={
+              <ProtectedRoute requiredRole="provider">
+                <ProviderAnalytics />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/customize" element={
+              <ProtectedRoute requiredRole="provider">
+                <SiteCustomization />
+              </ProtectedRoute>
+            } />
+            
+            {/* Customer-Facing Storefront Routes */}
+            <Route path="/storefront/:providerId?" element={<CustomerStorefront />} />
+            <Route path="/storefront/:providerId/units" element={<UnitBrowser />} />
+            <Route path="/storefront/:providerId/unit/:unitId" element={<UnitDetails />} />
+            <Route path="/storefront/:providerId/book/:unitId" element={
+              <ProtectedRoute>
+                <BookingFlow />
+              </ProtectedRoute>
+            } />
+            <Route path="/account" element={
+              <ProtectedRoute>
+                <CustomerAccount />
+              </ProtectedRoute>
+            } />
+            
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

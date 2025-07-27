@@ -14,13 +14,243 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string
+          customer_id: string
+          end_date: string | null
+          id: string
+          monthly_rate_pence: number
+          start_date: string
+          status: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          end_date?: string | null
+          id?: string
+          monthly_rate_pence: number
+          start_date: string
+          status?: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          end_date?: string | null
+          id?: string
+          monthly_rate_pence?: number
+          start_date?: string
+          status?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facilities: {
+        Row: {
+          address: string
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          postcode: string
+          provider_id: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          postcode: string
+          provider_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          postcode?: string
+          provider_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facilities_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_pence: number
+          booking_id: string
+          created_at: string
+          id: string
+          payment_date: string
+          payment_method: string | null
+          status: string
+          stripe_payment_id: string | null
+        }
+        Insert: {
+          amount_pence: number
+          booking_id: string
+          created_at?: string
+          id?: string
+          payment_date?: string
+          payment_method?: string | null
+          status?: string
+          stripe_payment_id?: string | null
+        }
+        Update: {
+          amount_pence?: number
+          booking_id?: string
+          created_at?: string
+          id?: string
+          payment_date?: string
+          payment_method?: string | null
+          status?: string
+          stripe_payment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          phone: string | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      units: {
+        Row: {
+          created_at: string
+          facility_id: string
+          features: string[] | null
+          floor_level: number | null
+          height_metres: number | null
+          id: string
+          length_metres: number | null
+          monthly_price_pence: number
+          size_category: string
+          status: string
+          unit_number: string
+          updated_at: string
+          width_metres: number | null
+        }
+        Insert: {
+          created_at?: string
+          facility_id: string
+          features?: string[] | null
+          floor_level?: number | null
+          height_metres?: number | null
+          id?: string
+          length_metres?: number | null
+          monthly_price_pence: number
+          size_category: string
+          status?: string
+          unit_number: string
+          updated_at?: string
+          width_metres?: number | null
+        }
+        Update: {
+          created_at?: string
+          facility_id?: string
+          features?: string[] | null
+          floor_level?: number | null
+          height_metres?: number | null
+          id?: string
+          length_metres?: number | null
+          monthly_price_pence?: number
+          size_category?: string
+          status?: string
+          unit_number?: string
+          updated_at?: string
+          width_metres?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "units_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

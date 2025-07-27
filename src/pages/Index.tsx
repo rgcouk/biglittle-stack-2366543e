@@ -1,10 +1,13 @@
 import { Button } from "@/components/ui/button"
 import { HeroSection } from "@/components/ui/hero-section"
 import { RoleCard } from "@/components/layout/role-card"
-import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap } from "lucide-react"
+import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap, LogIn, LogOut } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuth"
 
 const Index = () => {
+  const { user, signOut } = useAuth();
+  
   const handleRoleSelect = (role: string) => {
     switch (role) {
       case "Platform Admin":
@@ -44,13 +47,29 @@ const Index = () => {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="bg-transparent border-white/30 text-white hover:bg-white/10"
-            >
-              Learn More
-            </Button>
+            {user ? (
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="bg-transparent border-white/30 text-white hover:bg-white/10"
+                onClick={signOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
+            ) : (
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="bg-transparent border-white/30 text-white hover:bg-white/10"
+                asChild
+              >
+                <Link to="/auth">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign In
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </HeroSection>
