@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,12 +14,21 @@ export default function AuthPage() {
   const { user, signIn, signUp, loading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle automatic demo login from URL parameters
+  useEffect(() => {
+    const demoRole = searchParams.get('demo');
+    if (demoRole && (demoRole === 'customer' || demoRole === 'provider') && !user && !isSubmitting) {
+      handleDemoLogin(demoRole);
+    }
+  }, [searchParams, user, isSubmitting]);
 
   // If user is already logged in, redirect to appropriate dashboard
   if (user && !loading) {
-    const from = location.state?.from?.pathname || '/';
-    return <Navigate to={from} replace />;
+    const redirectTo = searchParams.get('redirect') || location.state?.from?.pathname || '/provider';
+    return <Navigate to={redirectTo} replace />;
   }
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {

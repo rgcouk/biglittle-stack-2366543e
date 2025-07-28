@@ -129,7 +129,7 @@ export default function Demo() {
                 </div>
 
                 <Button asChild className="w-full bg-gradient-primary hover:opacity-90 transition-opacity" size="lg">
-                  <Link to="/provider">
+                  <Link to="/auth?demo=provider">
                     Explore Provider Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -204,7 +204,7 @@ export default function Demo() {
                 <Settings className="h-6 w-6 text-primary mx-auto mb-2" />
                 <p className="text-sm font-medium">Unit Management</p>
                 <Button asChild variant="ghost" size="sm" className="mt-2 w-full">
-                  <Link to="/provider/units">View Demo</Link>
+                  <Link to="/auth?demo=provider&redirect=/provider/units">View Demo</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -224,7 +224,7 @@ export default function Demo() {
                 <CreditCard className="h-6 w-6 text-primary mx-auto mb-2" />
                 <p className="text-sm font-medium">Billing System</p>
                 <Button asChild variant="ghost" size="sm" className="mt-2 w-full">
-                  <Link to="/provider/billing">View Demo</Link>
+                  <Link to="/auth?demo=provider&redirect=/provider/billing">View Demo</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -234,7 +234,7 @@ export default function Demo() {
                 <Package className="h-6 w-6 text-primary mx-auto mb-2" />
                 <p className="text-sm font-medium">Customer Portal</p>
                 <Button asChild variant="ghost" size="sm" className="mt-2 w-full">
-                  <Link to="/account">View Demo</Link>
+                  <Link to="/auth?demo=customer&redirect=/account">View Demo</Link>
                 </Button>
               </CardContent>
             </Card>
