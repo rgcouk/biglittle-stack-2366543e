@@ -1,91 +1,91 @@
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Building2, Plus, Search, Filter, Edit, Eye, Home } from "lucide-react"
-import { Link } from "react-router-dom"
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Search, Filter, Eye, Edit, Plus, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useUnits } from "@/hooks/useUnits";
+import { useProviderFacilities } from "@/hooks/useFacilities";
+import { formatCurrencyMonthly } from "@/lib/currency";
 
-export default function UnitsManagement() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+const UnitsManagement = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const units = [
-    { id: "U001", size: "5x5", type: "Climate Controlled", price: 32, status: "Available", floor: 1 },
-    { id: "U002", size: "5x10", type: "Standard", price: 48, status: "Occupied", floor: 1, customer: "John Smith" },
-    { id: "U003", size: "10x10", type: "Climate Controlled", price: 68, status: "Available", floor: 2 },
-    { id: "U004", size: "10x15", type: "Standard", price: 85, status: "Maintenance", floor: 2 },
-    { id: "U005", size: "10x20", type: "Climate Controlled", price: 125, status: "Occupied", floor: 1, customer: "Jane Doe" },
-  ]
+  const { data: facilities, isLoading: facilitiesLoading } = useProviderFacilities();
+  const facilityId = facilities?.[0]?.id; // Use first facility for demo
+  const { data: units = [], isLoading: unitsLoading } = useUnits(facilityId);
 
-  const filteredUnits = units.filter(unit => {
-    const matchesSearch = unit.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         unit.size.includes(searchTerm) ||
-                         unit.type.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || unit.status.toLowerCase() === statusFilter
-    return matchesSearch && matchesStatus
-  })
+  const filteredUnits = units.filter((unit) => {
+    const matchesSearch = unit.unit_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         unit.size_category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (unit.features || []).some(feature => feature.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === "all" || unit.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Available": return "bg-green-100 text-green-800"
-      case "Occupied": return "bg-blue-100 text-blue-800"
-      case "Maintenance": return "bg-yellow-100 text-yellow-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "available":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "occupied": 
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "maintenance":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
+  };
+
+  if (facilitiesLoading || unitsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
+      {/* Header */}
+      <div className="border-b bg-card">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link to="/provider" className="flex items-center space-x-2 text-primary">
-                <Home className="h-5 w-5" />
-                <span className="text-sm text-muted-foreground">Dashboard</span>
+              <Link to="/provider" className="flex items-center space-x-2 text-muted-foreground hover:text-primary">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
               </Link>
-              <div className="w-px h-6 bg-border" />
               <h1 className="text-2xl font-bold">Units Management</h1>
             </div>
-            <Button className="bg-gradient-primary hover:opacity-90">
+            <Button className="bg-primary hover:bg-primary/90">
               <Plus className="h-4 w-4 mr-2" />
               Add Unit
             </Button>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="container mx-auto px-6 py-8">
-        <Card className="shadow-card">
+      {/* Main Content */}
+      <div className="container mx-auto px-6 py-8">
+        <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center space-x-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <span>Storage Units</span>
-                </CardTitle>
-                <CardDescription>
-                  Manage your storage unit inventory, pricing, and availability
-                </CardDescription>
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4 mt-6">
+            <CardTitle>Storage Units</CardTitle>
+            <div className="flex flex-col sm:flex-row gap-4 mt-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search units by ID, size, or type..."
+                  placeholder="Search units by number, size, or features..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-40">
+                <SelectTrigger className="w-full sm:w-40">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -98,41 +98,46 @@ export default function UnitsManagement() {
               </Select>
             </div>
           </CardHeader>
-
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Unit ID</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Unit #</TableHead>
+                  <TableHead>Dimensions</TableHead>
+                  <TableHead>Category</TableHead>
                   <TableHead>Floor</TableHead>
-                  <TableHead>Price/Month</TableHead>
+                  <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Customer</TableHead>
+                  <TableHead>Features</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUnits.map((unit) => (
                   <TableRow key={unit.id}>
-                    <TableCell className="font-medium">{unit.id}</TableCell>
-                    <TableCell>{unit.size}</TableCell>
-                    <TableCell>{unit.type}</TableCell>
-                    <TableCell>{unit.floor}</TableCell>
-                    <TableCell>£{unit.price}</TableCell>
+                    <TableCell className="font-medium">{unit.unit_number}</TableCell>
+                    <TableCell>{unit.length_metres}m x {unit.width_metres}m</TableCell>
+                    <TableCell>{unit.size_category}</TableCell>
+                    <TableCell>
+                      {unit.floor_level === 0 ? "Ground" : 
+                       unit.floor_level === -1 ? "Basement" : 
+                       `Floor ${unit.floor_level}`}
+                    </TableCell>
+                    <TableCell>{formatCurrencyMonthly(unit.monthly_price_pence / 100)}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(unit.status)}>
-                        {unit.status}
+                        {unit.status.charAt(0).toUpperCase() + unit.status.slice(1)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{unit.customer || "-"}</TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
+                      {unit.features?.join(", ") || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button size="sm" variant="outline">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -141,9 +146,16 @@ export default function UnitsManagement() {
                 ))}
               </TableBody>
             </Table>
+            {filteredUnits.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                No units found matching your criteria.
+              </div>
+            )}
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default UnitsManagement;
