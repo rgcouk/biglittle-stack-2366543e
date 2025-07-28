@@ -10,18 +10,23 @@ export function useUserRole() {
     queryFn: async () => {
       if (!user) return null;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching user role:', error);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error fetching user role:', error);
+          return null;
+        }
+        
+        return data?.role || null;
+      } catch (err) {
+        console.error('Unexpected error in useUserRole:', err);
         return null;
       }
-      
-      return data?.role || null;
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
