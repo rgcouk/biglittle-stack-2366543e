@@ -7,10 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 
 export default function AuthPage() {
   const { user, signIn, signUp, loading } = useAuth();
+  const { toast } = useToast();
   const location = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,12 +51,48 @@ export default function AuthPage() {
   const handleDemoLogin = async (role: 'customer' | 'provider') => {
     setIsSubmitting(true);
     const demoCredentials = {
-      customer: { email: 'demo.customer@biglittlebox.com', password: 'demo123' },
-      provider: { email: 'demo.provider@biglittlebox.com', password: 'demo123' }
+      customer: { 
+        email: 'demo.customer@biglittlebox.com', 
+        password: 'demo123',
+        displayName: 'Demo Customer',
+        company: null
+      },
+      provider: { 
+        email: 'demo.provider@biglittlebox.com', 
+        password: 'demo123',
+        displayName: 'Demo Provider',
+        company: 'Total Storage Boston'
+      }
     };
     
-    const { email, password } = demoCredentials[role];
-    await signIn(email, password);
+    const { email, password, displayName, company } = demoCredentials[role];
+    
+    // Try to sign in first
+    const { error: signInError } = await signIn(email, password);
+    
+    if (signInError) {
+      // If sign in fails, try to sign up the demo account
+      const { error: signUpError } = await signUp(email, password, displayName, role);
+      
+      if (signUpError) {
+        toast({
+          title: "Demo Login Failed",
+          description: "Could not create or access demo account. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Demo Account Created",
+          description: `Demo ${role} account created and logged in successfully.`,
+        });
+      }
+    } else {
+      toast({
+        title: "Demo Login Successful",
+        description: `Logged in as demo ${role}.`,
+      });
+    }
+    
     setIsSubmitting(false);
   };
 
