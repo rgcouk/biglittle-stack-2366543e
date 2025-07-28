@@ -1,23 +1,33 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Filter, Eye, Edit, Plus, Loader2 } from "lucide-react";
+import { ArrowLeft, Search, Filter, Eye, Edit, Plus, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useUnits } from "@/hooks/useUnits";
+import { useUnits, useDeleteUnit } from "@/hooks/useUnits";
 import { useProviderFacilities } from "@/hooks/useFacilities";
 import { formatCurrencyMonthly } from "@/lib/currency";
+import { CreateUnitForm } from "@/components/forms/CreateUnitForm";
 
 const UnitsManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const { data: facilities, isLoading: facilitiesLoading } = useProviderFacilities();
   const facilityId = facilities?.[0]?.id; // Use first facility for demo
   const { data: units = [], isLoading: unitsLoading } = useUnits(facilityId);
+  const deleteUnit = useDeleteUnit();
+
+  const handleDeleteUnit = async (unitId: string) => {
+    if (confirm('Are you sure you want to delete this unit?')) {
+      await deleteUnit.mutateAsync(unitId);
+    }
+  };
 
   const filteredUnits = units.filter((unit) => {
     const matchesSearch = unit.unit_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,10 +71,17 @@ const UnitsManagement = () => {
               </Link>
               <h1 className="text-2xl font-bold">Units Management</h1>
             </div>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Unit
-            </Button>
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary hover:bg-primary/90">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Unit
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <CreateUnitForm onSuccess={() => setCreateDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
@@ -139,6 +156,14 @@ const UnitsManagement = () => {
                         </Button>
                         <Button size="sm" variant="outline">
                           <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleDeleteUnit(unit.id)}
+                          disabled={deleteUnit.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>

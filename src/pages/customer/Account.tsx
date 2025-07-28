@@ -2,12 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { User, CreditCard, FileText, Building2, Phone, Mail, Loader2 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useProfile } from "@/hooks/useProfiles"
 import { useCustomerBookings } from "@/hooks/useBookings"
 import { useAuth } from "@/hooks/useAuth"
 import { formatCurrency } from "@/lib/currency"
+import { EditProfileForm } from "@/components/forms/EditProfileForm"
 
 export default function CustomerAccount() {
   const { user, signOut } = useAuth();
@@ -81,9 +83,16 @@ export default function CustomerAccount() {
                     </div>
                   )}
                 </div>
-                <Button variant="outline" className="w-full">
-                  Edit Profile
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      Edit Profile
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <EditProfileForm />
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
 
