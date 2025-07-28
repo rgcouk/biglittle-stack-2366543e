@@ -50,10 +50,38 @@ const UnitsManagement = () => {
     }
   };
 
-  if (facilitiesLoading || unitsLoading) {
+  if (facilitiesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading facilities...</span>
+      </div>
+    );
+  }
+
+  if (unitsLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="border-b bg-card">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Link to="/provider" className="flex items-center space-x-2 text-muted-foreground hover:text-primary">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Dashboard</span>
+                </Link>
+                <h1 className="text-2xl font-bold">Units Management</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Loading units...</span>
+          </div>
+        </div>
       </div>
     );
   }
