@@ -57,9 +57,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
+        // Sanitize error messages to prevent information disclosure
+        const sanitizedMessage = error.message.includes('already registered') 
+          ? 'This email is already registered. Please try signing in instead.'
+          : 'Unable to create account. Please check your details and try again.';
+        
         toast({
           title: "Sign up failed",
-          description: error.message,
+          description: sanitizedMessage,
           variant: "destructive"
         });
       } else {
@@ -88,9 +93,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
+        // Sanitize error messages to prevent user enumeration
+        const sanitizedMessage = 'Invalid email or password. Please check your credentials and try again.';
+        
         toast({
           title: "Sign in failed",
-          description: error.message,
+          description: sanitizedMessage,
           variant: "destructive"
         });
       } else {

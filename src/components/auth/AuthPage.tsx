@@ -50,46 +50,37 @@ export default function AuthPage() {
 
   const handleDemoLogin = async (role: 'customer' | 'provider') => {
     setIsSubmitting(true);
+    
+    // Generate secure random demo credentials for this session
+    const randomId = Math.random().toString(36).substring(2, 15);
     const demoCredentials = {
       customer: { 
-        email: 'demo.customer@biglittlebox.com', 
-        password: 'demo123',
+        email: `demo.customer.${randomId}@example.com`, 
+        password: `demo${randomId}${Date.now()}`,
         displayName: 'Demo Customer',
-        company: null
       },
       provider: { 
-        email: 'demo.provider@biglittlebox.com', 
-        password: 'demo123',
+        email: `demo.provider.${randomId}@example.com`, 
+        password: `demo${randomId}${Date.now()}`,
         displayName: 'Demo Provider',
-        company: 'Total Storage Boston'
       }
     };
     
-    const { email, password, displayName, company } = demoCredentials[role];
+    const { email, password, displayName } = demoCredentials[role];
     
-    // Try to sign in first
-    const { error: signInError } = await signIn(email, password);
+    // Create a new demo account for this session
+    const { error: signUpError } = await signUp(email, password, displayName, role);
     
-    if (signInError) {
-      // If sign in fails, try to sign up the demo account
-      const { error: signUpError } = await signUp(email, password, displayName, role);
-      
-      if (signUpError) {
-        toast({
-          title: "Demo Login Failed",
-          description: "Could not create or access demo account. Please try again.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Demo Account Created",
-          description: `Demo ${role} account created and logged in successfully.`,
-        });
-      }
+    if (signUpError) {
+      toast({
+        title: "Demo Account Creation Failed",
+        description: "Could not create demo account. Please try manual sign up.",
+        variant: "destructive",
+      });
     } else {
       toast({
-        title: "Demo Login Successful",
-        description: `Logged in as demo ${role}.`,
+        title: "Demo Account Created",
+        description: `Demo ${role} account created successfully. Check your email to confirm.`,
       });
     }
     
