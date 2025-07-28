@@ -11,7 +11,6 @@ export function useUserRole() {
       if (!user) return null;
       
       const { data, error } = await supabase
-        .schema('public')
         .from('profiles')
         .select('role')
         .eq('user_id', user.id)
