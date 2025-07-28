@@ -1,11 +1,17 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star, MapPin, Clock, Shield, Thermometer, Car, Camera, Phone } from "lucide-react"
-import { Link, useParams } from "react-router-dom"
+import { Star, MapPin, Clock, Shield, Thermometer, Car, Camera, Phone, Loader2 } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom"
+import { useFacilities } from "@/hooks/useFacilities"
+import { useUnits } from "@/hooks/useUnits"
+import { formatCurrencyMonthly } from "@/lib/currency"
 
 export default function CustomerStorefront() {
-  const { providerId } = useParams()
+  const navigate = useNavigate()
+  const { data: facilities, isLoading: facilitiesLoading } = useFacilities()
+  const facility = facilities?.[0] // Use first available facility
+  const { data: units = [], isLoading: unitsLoading } = useUnits(facility?.provider_id)
 
   const features = [
     { icon: Shield, title: "24/7 Security", description: "Advanced security systems with constant monitoring" },
@@ -14,13 +20,44 @@ export default function CustomerStorefront() {
     { icon: Camera, title: "Video Surveillance", description: "Comprehensive CCTV coverage for your peace of mind" },
   ]
 
-  const unitTypes = [
-    { size: "5x5", price: 32, description: "Perfect for seasonal items and small furniture", available: 8 },
-    { size: "5x10", price: 48, description: "Ideal for studio flat or office contents", available: 12 },
-    { size: "10x10", price: 68, description: "Great for 1-2 bedroom home contents", available: 6 },
-    { size: "10x15", price: 85, description: "Suitable for 2-3 bedroom home contents", available: 4 },
-    { size: "10x20", price: 125, description: "Perfect for 3-4 bedroom home or vehicle storage", available: 3 },
-  ]
+  // Group units by size category for display
+  const unitTypes = units.reduce((acc, unit) => {
+    const key = unit.size_category
+    if (!acc[key]) {
+      acc[key] = {
+        size: `${unit.length_metres}x${unit.width_metres}`,
+        price: unit.monthly_price_pence / 100,
+        description: `${unit.size_category} storage unit`,
+        available: 1,
+        units: []
+      }
+    } else {
+      acc[key].available += 1
+    }
+    acc[key].units.push(unit)
+    return acc
+  }, {} as Record<string, any>)
+
+  const unitTypesArray = Object.values(unitTypes)
+
+  if (facilitiesLoading || unitsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!facility) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">No Storage Facilities Available</h2>
+          <p className="text-muted-foreground">Please check back later or contact support.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,7 +66,7 @@ export default function CustomerStorefront() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-primary">Premier Storage Solutions</h1>
+              <h1 className="text-xl font-bold text-primary">{facility.name}</h1>
               <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span>4.8 (124 reviews)</span>
@@ -39,8 +76,8 @@ export default function CustomerStorefront() {
               <Button variant="outline" asChild>
                 <Link to="/account">My Account</Link>
               </Button>
-              <Button asChild>
-                <Link to={`/storefront/${providerId}/units`}>Browse Units</Link>
+              <Button onClick={() => navigate('/units')}>
+                Browse Units
               </Button>
             </div>
           </div>
@@ -57,12 +94,12 @@ export default function CustomerStorefront() {
             Premium self-storage facilities with state-of-the-art security, climate control, and convenient access.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" asChild>
-              <Link to={`/storefront/${providerId}/units`}>Find Your Perfect Unit</Link>
+            <Button size="lg" variant="secondary" onClick={() => navigate('/units')}>
+              Find Your Perfect Unit
             </Button>
             <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
               <Phone className="h-4 w-4 mr-2" />
-              Call 0161 123 4567
+              Call {facility.phone || '0161 123 4567'}
             </Button>
           </div>
         </div>
@@ -81,8 +118,8 @@ export default function CustomerStorefront() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  123 Storage Park, Business Estate<br />
-                  Manchester, M1 7ED
+                  {facility.address}<br />
+                  {facility.postcode}
                 </p>
                 <Button variant="outline" className="w-full">
                   Get Directions
@@ -157,7 +194,7 @@ export default function CustomerStorefront() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {unitTypes.map((unit, index) => (
+            {unitTypesArray.map((unit, index) => (
               <Card key={index} className="shadow-card hover:shadow-elevated transition-all duration-300">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -165,16 +202,13 @@ export default function CustomerStorefront() {
                     <Badge variant="secondary">{unit.available} available</Badge>
                   </div>
                   <CardDescription className="text-lg">
-                    <span className="text-2xl font-bold text-primary">£{unit.price}</span>
-                    <span className="text-sm text-muted-foreground">/month</span>
+                    <span className="text-2xl font-bold text-primary">{formatCurrencyMonthly(unit.price)}</span>
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">{unit.description}</p>
-                  <Button className="w-full bg-gradient-primary hover:opacity-90" asChild>
-                    <Link to={`/storefront/${providerId}/units`}>
-                      View Details & Book
-                    </Link>
+                  <Button className="w-full bg-gradient-primary hover:opacity-90" onClick={() => navigate('/units')}>
+                    View Details & Book
                   </Button>
                 </CardContent>
               </Card>
@@ -188,7 +222,7 @@ export default function CustomerStorefront() {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h4 className="font-bold text-lg mb-4">Premier Storage Solutions</h4>
+              <h4 className="font-bold text-lg mb-4">{facility.name}</h4>
               <p className="text-muted-foreground mb-4">
                 Your trusted partner for secure, convenient storage solutions.
               </p>
@@ -199,9 +233,9 @@ export default function CustomerStorefront() {
             <div>
               <h5 className="font-semibold mb-4">Quick Links</h5>
               <div className="space-y-2">
-                <Link to={`/storefront/${providerId}/units`} className="block text-muted-foreground hover:text-primary">
+                <button onClick={() => navigate('/units')} className="block text-muted-foreground hover:text-primary text-left">
                   Browse Units
-                </Link>
+                </button>
                 <Link to="/account" className="block text-muted-foreground hover:text-primary">
                   Customer Login
                 </Link>
@@ -213,9 +247,9 @@ export default function CustomerStorefront() {
             <div>
               <h5 className="font-semibold mb-4">Contact</h5>
               <div className="space-y-2 text-muted-foreground">
-                <p>0161 123 4567</p>
-                <p>info@premierstoragesolutions.co.uk</p>
-                <p>123 Storage Park<br />Manchester, M1 7ED</p>
+                <p>{facility.phone || '0161 123 4567'}</p>
+                <p>{facility.email || 'info@' + facility.name.toLowerCase().replace(/\s+/g, '') + '.co.uk'}</p>
+                <p>{facility.address}<br />{facility.postcode}</p>
               </div>
             </div>
           </div>

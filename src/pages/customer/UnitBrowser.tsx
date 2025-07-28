@@ -7,18 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Ruler, Thermometer, Car, Camera, ArrowLeft, Filter, Loader2 } from "lucide-react"
 import { Link, useParams } from "react-router-dom"
-import { useFacility } from "@/hooks/useFacilities"
+import { useFacilities } from "@/hooks/useFacilities"
 import { useUnits } from "@/hooks/useUnits"
 import { formatCurrencyMonthly } from "@/lib/currency"
 
 export default function UnitBrowser() {
-  const { providerId } = useParams()
   const [priceRange, setPriceRange] = useState("all")
   const [unitType, setUnitType] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
 
-  const { data: facility, isLoading: facilityLoading } = useFacility(providerId || "")
-  const { data: units = [], isLoading: unitsLoading } = useUnits(providerId)
+  const { data: facilities, isLoading: facilitiesLoading } = useFacilities()
+  const facility = facilities?.[0]
+  const { data: units = [], isLoading: unitsLoading } = useUnits(facility?.provider_id)
 
   const filteredUnits = units.filter(unit => {
     const matchesSearch = unit.unit_number.includes(searchTerm) || 
@@ -37,7 +37,7 @@ export default function UnitBrowser() {
     return matchesSearch && matchesPrice && matchesType && unit.status === "available"
   })
 
-  if (facilityLoading || unitsLoading) {
+  if (facilitiesLoading || unitsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -67,12 +67,12 @@ export default function UnitBrowser() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link to={`/storefront/${providerId}`} className="flex items-center space-x-2 text-primary">
+              <Link to="/storefront" className="flex items-center space-x-2 text-primary">
                 <ArrowLeft className="h-5 w-5" />
                 <span className="text-sm text-muted-foreground">Back to Storefront</span>
               </Link>
               <div className="w-px h-6 bg-border" />
-              <h1 className="text-2xl font-bold">Browse Available Units - {facility.name}</h1>
+              <h1 className="text-2xl font-bold">Browse Available Units - {facility?.name}</h1>
             </div>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function UnitBrowser() {
                           className="flex-1"
                           asChild
                         >
-                          <Link to={`/storefront/${providerId}/unit/${unit.id}`}>
+                          <Link to={`/unit/${unit.id}`}>
                             View Details
                           </Link>
                         </Button>
@@ -208,7 +208,7 @@ export default function UnitBrowser() {
                           className="flex-1 bg-gradient-primary hover:opacity-90"
                           asChild
                         >
-                           <Link to={`/storefront/${providerId}/book/${unit.id}`}>
+                           <Link to={`/book/${unit.id}`}>
                              Reserve Now
                            </Link>
                         </Button>

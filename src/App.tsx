@@ -65,12 +65,11 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Customer-Facing Storefront Routes */}
-            <Route path="/storefront/:providerId?" element={<CustomerStorefront />} />
+            {/* Customer Routes */}
             <Route path="/storefront" element={<CustomerStorefront />} />
-            <Route path="/storefront/:providerId/units" element={<UnitBrowser />} />
-            <Route path="/storefront/:providerId/unit/:unitId" element={<UnitDetails />} />
-            <Route path="/storefront/:providerId/book/:unitId" element={
+            <Route path="/units" element={<UnitBrowser />} />
+            <Route path="/unit/:unitId" element={<UnitDetails />} />
+            <Route path="/book/:unitId" element={
               <ProtectedRoute>
                 <BookingFlow />
               </ProtectedRoute>
