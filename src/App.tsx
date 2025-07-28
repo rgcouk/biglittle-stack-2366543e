@@ -17,6 +17,8 @@ import ProviderAnalytics from "./pages/provider/Analytics";
 import SiteCustomization from "./pages/provider/SiteCustomization";
 import CustomerStorefront from "./pages/customer/Storefront";
 import UnitBrowser from "./pages/customer/UnitBrowser";
+import DemoStorefront from "./pages/customer/DemoStorefront";
+import DemoUnitBrowser from "./pages/customer/DemoUnitBrowser";
 import UnitDetails from "./pages/customer/UnitDetails";
 import BookingFlow from "./pages/customer/BookingFlow";
 import CustomerAccount from "./pages/customer/Account";
@@ -66,6 +68,10 @@ const App = () => (
                 <SiteCustomization />
               </ProtectedRoute>
             } />
+            
+            {/* Demo Routes (No Authentication Required) */}
+            <Route path="/storefront/demo-storage" element={<DemoStorefront />} />
+            <Route path="/storefront/demo-storage/units" element={<DemoUnitBrowser />} />
             
             {/* Customer-Facing Storefront Routes */}
             <Route path="/storefront/:providerId?" element={<CustomerStorefront />} />
