@@ -46,6 +46,18 @@ export default function AuthPage() {
     setIsSubmitting(false);
   };
 
+  const handleDemoLogin = async (role: 'customer' | 'provider') => {
+    setIsSubmitting(true);
+    const demoCredentials = {
+      customer: { email: 'demo.customer@biglittlebox.com', password: 'demo123' },
+      provider: { email: 'demo.provider@biglittlebox.com', password: 'demo123' }
+    };
+    
+    const { email, password } = demoCredentials[role];
+    await signIn(email, password);
+    setIsSubmitting(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -62,6 +74,34 @@ export default function AuthPage() {
           <CardDescription>Access your storage account</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Demo Login Section */}
+          <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
+            <h3 className="font-semibold text-sm text-primary mb-3">Quick Demo Access</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={() => handleDemoLogin('customer')}
+                disabled={isSubmitting}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Demo Customer'}
+              </Button>
+              <Button
+                onClick={() => handleDemoLogin('provider')}
+                disabled={isSubmitting}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Demo Provider'}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Use demo accounts to explore the platform features
+            </p>
+          </div>
+
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
