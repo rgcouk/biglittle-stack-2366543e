@@ -60,17 +60,23 @@ export default function AuthPage() {
   const handleDemoLogin = async (role: 'customer' | 'provider') => {
     setIsSubmitting(true);
     
-    // Create a unique demo account for this session
+    // Generate secure random credentials for demo account
+    const generateSecurePassword = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+      return Array.from({ length: 16 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+    };
+    
     const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
     const demoCredentials = {
       customer: { 
-        email: `democustomer${timestamp}@biglittlebox.demo`, 
-        password: 'DemoPassword123!',
+        email: `democustomer${timestamp}${randomSuffix}@biglittlebox.demo`, 
+        password: generateSecurePassword(),
         displayName: 'Demo Customer',
       },
       provider: { 
-        email: `demoprovider${timestamp}@biglittlebox.demo`, 
-        password: 'DemoPassword123!',
+        email: `demoprovider${timestamp}${randomSuffix}@biglittlebox.demo`, 
+        password: generateSecurePassword(),
         displayName: 'Demo Storage Provider',
       }
     };

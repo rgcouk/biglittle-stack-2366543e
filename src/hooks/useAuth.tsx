@@ -42,15 +42,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, displayName?: string, role?: string) => {
     try {
+      // Input validation
+      if (!email || !password) {
+        const error = new Error('Email and password are required');
+        toast({
+          title: "Sign up failed",
+          description: "Please provide both email and password",
+          variant: "destructive"
+        });
+        return { error };
+      }
+      
+      if (password.length < 8) {
+        const error = new Error('Password must be at least 8 characters');
+        toast({
+          title: "Sign up failed", 
+          description: "Password must be at least 8 characters long",
+          variant: "destructive"
+        });
+        return { error };
+      }
+      
+      // Sanitize inputs
+      const sanitizedEmail = email.trim().toLowerCase();
+      const sanitizedDisplayName = displayName?.trim();
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
-        email,
+        email: sanitizedEmail,
         password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            display_name: displayName,
+            display_name: sanitizedDisplayName,
             role: role || 'customer'
           }
         }
@@ -87,8 +111,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Input validation
+      if (!email || !password) {
+        const error = new Error('Email and password are required');
+        toast({
+          title: "Sign in failed",
+          description: "Please provide both email and password",
+          variant: "destructive"
+        });
+        return { error };
+      }
+      
+      // Sanitize inputs
+      const sanitizedEmail = email.trim().toLowerCase();
+      
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: sanitizedEmail,
         password
       });
       
