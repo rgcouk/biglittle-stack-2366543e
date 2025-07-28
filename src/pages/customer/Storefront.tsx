@@ -5,7 +5,7 @@ import { Star, MapPin, Clock, Shield, Thermometer, Car, Camera, Phone } from "lu
 import { Link, useParams } from "react-router-dom"
 
 export default function CustomerStorefront() {
-  const { providerId = "demo-storage" } = useParams()
+  const { providerId } = useParams()
 
   const features = [
     { icon: Shield, title: "24/7 Security", description: "Advanced security systems with constant monitoring" },

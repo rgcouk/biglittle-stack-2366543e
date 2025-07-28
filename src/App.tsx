@@ -7,7 +7,6 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AuthPage from "@/components/auth/AuthPage";
 import Index from "./pages/Index";
-import Demo from "./pages/Demo";
 import NotFound from "./pages/NotFound";
 import ProviderDashboard from "./pages/provider/Dashboard";
 import UnitsManagement from "./pages/provider/UnitsManagement";
@@ -17,8 +16,6 @@ import ProviderAnalytics from "./pages/provider/Analytics";
 import SiteCustomization from "./pages/provider/SiteCustomization";
 import CustomerStorefront from "./pages/customer/Storefront";
 import UnitBrowser from "./pages/customer/UnitBrowser";
-import DemoStorefront from "./pages/customer/DemoStorefront";
-import DemoUnitBrowser from "./pages/customer/DemoUnitBrowser";
 import UnitDetails from "./pages/customer/UnitDetails";
 import BookingFlow from "./pages/customer/BookingFlow";
 import CustomerAccount from "./pages/customer/Account";
@@ -35,7 +32,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/demo" element={<Demo />} />
             
             {/* Storage Provider Dashboard Routes */}
             <Route path="/provider" element={
@@ -69,12 +65,9 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Demo Routes (No Authentication Required) */}
-            <Route path="/storefront/demo-storage" element={<DemoStorefront />} />
-            <Route path="/storefront/demo-storage/units" element={<DemoUnitBrowser />} />
-            
             {/* Customer-Facing Storefront Routes */}
             <Route path="/storefront/:providerId?" element={<CustomerStorefront />} />
+            <Route path="/storefront" element={<CustomerStorefront />} />
             <Route path="/storefront/:providerId/units" element={<UnitBrowser />} />
             <Route path="/storefront/:providerId/unit/:unitId" element={<UnitDetails />} />
             <Route path="/storefront/:providerId/book/:unitId" element={

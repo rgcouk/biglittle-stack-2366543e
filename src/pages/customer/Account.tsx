@@ -26,7 +26,7 @@ export default function CustomerAccount() {
 
   const currentBooking = bookings.find(booking => booking.status === "active");
   
-  // Mock payment history for demo - in production this would come from payments table
+  // Sample payment history - would come from payments table in production
   const invoices = [
     { id: "INV-001", date: "2024-04-01", amount: 8500, status: "Paid" },
     { id: "INV-002", date: "2024-03-01", amount: 8500, status: "Paid" },
@@ -41,7 +41,7 @@ export default function CustomerAccount() {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">My Account</h1>
             <div className="flex items-center space-x-4">
-              <Link to="/demo" className="text-primary hover:underline">
+              <Link to="/storefront" className="text-primary hover:underline">
                 Find More Storage
               </Link>
               <Button variant="outline" onClick={signOut}>Sign Out</Button>

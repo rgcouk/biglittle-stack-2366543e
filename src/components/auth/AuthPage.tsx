@@ -17,17 +17,9 @@ export default function AuthPage() {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Handle automatic demo login from URL parameters
-  useEffect(() => {
-    const demoRole = searchParams.get('demo');
-    if (demoRole && (demoRole === 'customer' || demoRole === 'provider') && !user && !isSubmitting) {
-      handleDemoLogin(demoRole);
-    }
-  }, [searchParams, user, isSubmitting]);
-
   // If user is already logged in, redirect to appropriate dashboard
   if (user && !loading) {
-    const redirectTo = searchParams.get('redirect') || location.state?.from?.pathname || '/provider';
+    const redirectTo = location.state?.from?.pathname || '/storefront';
     return <Navigate to={redirectTo} replace />;
   }
 
@@ -39,7 +31,16 @@ export default function AuthPage() {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     
-    await signIn(email, password);
+    const { error } = await signIn(email, password);
+    
+    if (error) {
+      toast({
+        title: "Sign in failed",
+        description: error.message || "Invalid email or password",
+        variant: "destructive",
+      });
+    }
+    
     setIsSubmitting(false);
   };
 
@@ -53,59 +54,18 @@ export default function AuthPage() {
     const displayName = formData.get('displayName') as string;
     const role = formData.get('role') as string;
     
-    await signUp(email, password, displayName, role);
-    setIsSubmitting(false);
-  };
-
-  const handleDemoLogin = async (role: 'customer' | 'provider') => {
-    setIsSubmitting(true);
+    const { error } = await signUp(email, password, displayName, role);
     
-    // Generate secure random credentials for demo account
-    const generateSecurePassword = () => {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-      return Array.from({ length: 16 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
-    };
-    
-    const timestamp = Date.now();
-    const randomSuffix = Math.random().toString(36).substring(2, 8);
-    const demoCredentials = {
-      customer: { 
-        email: `democustomer${timestamp}${randomSuffix}@biglittlebox.demo`, 
-        password: generateSecurePassword(),
-        displayName: 'Demo Customer',
-      },
-      provider: { 
-        email: `demoprovider${timestamp}${randomSuffix}@biglittlebox.demo`, 
-        password: generateSecurePassword(),
-        displayName: 'Demo Storage Provider',
-      }
-    };
-    
-    const { email, password, displayName } = demoCredentials[role];
-    
-    // Create demo account with role
-    const { error: signUpError } = await signUp(email, password, displayName, role);
-    
-    if (signUpError) {
-      // If signup fails, try to sign in (account might already exist)
-      const { error: signInError } = await signIn(email, password);
-      
-      if (signInError) {
-        toast({
-          title: "Demo Access Failed",
-          description: "Could not create demo account. Please try manual sign up or contact support.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Demo Access Granted",
-          description: `Signed in as demo ${role}. Explore the features!`,
-        });
-      }
+    if (error) {
+      toast({
+        title: "Sign up failed",
+        description: error.message || "Failed to create account",
+        variant: "destructive",
+      });
     } else {
       toast({
-        title: "Demo Account Created",
-        description: `Demo ${role} account created! Check the confirmation email or try signing in directly with the demo credentials.`,
+        title: "Account created!",
+        description: "Please check your email to verify your account.",
       });
     }
     
@@ -124,37 +84,10 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">SecureStore</CardTitle>
-          <CardDescription>Access your storage account</CardDescription>
+          <CardTitle className="text-2xl font-bold">BigLittleBox</CardTitle>
+          <CardDescription>Sign in to your account or create a new one</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Demo Login Section */}
-          <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <h3 className="font-semibold text-sm text-primary mb-3">Quick Demo Access</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                onClick={() => handleDemoLogin('customer')}
-                disabled={isSubmitting}
-                variant="outline"
-                size="sm"
-                className="text-xs"
-              >
-                {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Demo Customer'}
-              </Button>
-              <Button
-                onClick={() => handleDemoLogin('provider')}
-                disabled={isSubmitting}
-                variant="outline"
-                size="sm"
-                className="text-xs"
-              >
-                {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Demo Provider'}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Use demo accounts to explore the platform features
-            </p>
-          </div>
 
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">

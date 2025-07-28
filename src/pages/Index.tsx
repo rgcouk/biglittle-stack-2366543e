@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button"
 import { HeroSection } from "@/components/ui/hero-section"
-import { RoleCard } from "@/components/layout/role-card"
 import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap, LogIn, LogOut } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
@@ -8,19 +7,13 @@ import { useAuth } from "@/hooks/useAuth"
 const Index = () => {
   const { user, signOut } = useAuth();
   
-  const handleRoleSelect = (role: string) => {
-    switch (role) {
-      case "Platform Admin":
-        window.location.href = "/admin"
-        break
-      case "Storage Provider":
-        window.location.href = "/provider"
-        break
-      case "Customer Portal":
-        window.location.href = "/storefront"
-        break
-      default:
-        console.log(`Selected role: ${role}`)
+  const handleGetStarted = () => {
+    if (user) {
+      // If logged in, redirect based on role or to storefront
+      window.location.href = "/storefront"
+    } else {
+      // If not logged in, go to auth page
+      window.location.href = "/auth"
     }
   }
 
@@ -38,14 +31,11 @@ const Index = () => {
           <div className="flex flex-wrap justify-center gap-4 mt-8">
             <Button 
               size="lg" 
-              variant="secondary" 
-              className="bg-white/10 hover:bg-white/20 text-white border-white/20"
-              asChild
+              className="bg-white text-primary hover:bg-white/90"
+              onClick={handleGetStarted}
             >
-              <Link to="/demo">
-                View Demo
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             {user ? (
               <Button 
@@ -115,62 +105,55 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Role Selection */}
+      {/* How It Works */}
       <section className="py-16 px-6">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Choose Your Role</h2>
+            <h2 className="text-3xl font-bold mb-4">How BigLittleBox Works</h2>
             <p className="text-muted-foreground text-lg">
-              Access the platform based on your role and permissions
+              Simple, secure, and efficient storage management for providers and customers
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <RoleCard
-              title="Platform Admin"
-              description="Super admin access to manage tenants, billing, and platform analytics"
-              features={[
-                "Manage all storage businesses",
-                "Subscription billing & plans",
-                "Platform-wide analytics",
-                "Tenant impersonation",
-                "System configuration"
-              ]}
-              icon={Building}
-              buttonText="Admin Portal"
-              onClick={() => handleRoleSelect("admin")}
-            />
+            <div className="text-center space-y-4">
+              <div className="mx-auto p-4 bg-primary/10 rounded-full w-fit">
+                <Building className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">For Storage Providers</h3>
+              <p className="text-muted-foreground">
+                Manage your storage facility with powerful tools for unit management, customer relations, and billing automation.
+              </p>
+              <Button variant="outline" asChild>
+                <Link to="/auth">Get Started as Provider</Link>
+              </Button>
+            </div>
 
-            <RoleCard
-              title="Storage Provider"
-              description="Manage your storage business with comprehensive tenant dashboard"
-              features={[
-                "Unit & customer management",
-                "Lease tracking & billing",
-                "Document management",
-                "Revenue analytics",
-                "Stripe Connect integration"
-              ]}
-              icon={Users}
-              buttonText="Tenant Dashboard"
-              onClick={() => handleRoleSelect("tenant")}
-              variant="highlighted"
-            />
+            <div className="text-center space-y-4">
+              <div className="mx-auto p-4 bg-primary/10 rounded-full w-fit">
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">For Customers</h3>
+              <p className="text-muted-foreground">
+                Find, book, and manage your storage unit with our intuitive customer portal and mobile-friendly interface.
+              </p>
+              <Button variant="outline" asChild>
+                <Link to="/storefront">Browse Storage Units</Link>
+              </Button>
+            </div>
 
-            <RoleCard
-              title="Customer Portal"
-              description="Renters can view their unit details, billing, and documents"
-              features={[
-                "View unit details",
-                "Access billing history",
-                "Download lease documents",
-                "Update payment methods",
-                "Contact support"
-              ]}
-              icon={UserCheck}
-              buttonText="Customer Login"
-              onClick={() => handleRoleSelect("customer")}
-            />
+            <div className="text-center space-y-4">
+              <div className="mx-auto p-4 bg-primary/10 rounded-full w-fit">
+                <UserCheck className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">Seamless Integration</h3>
+              <p className="text-muted-foreground">
+                Built-in payment processing, automated billing, and comprehensive reporting keep your business running smoothly.
+              </p>
+              <Button variant="outline" asChild>
+                <Link to="/auth">Learn More</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>

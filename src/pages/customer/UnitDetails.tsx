@@ -5,7 +5,7 @@ import { Ruler, Thermometer, Car, Camera, ArrowLeft, Calendar, MapPin } from "lu
 import { Link, useParams } from "react-router-dom"
 
 export default function UnitDetails() {
-  const { providerId = "demo-storage", unitId = "U001" } = useParams()
+  const { providerId, unitId = "U001" } = useParams()
 
   const unit = {
     id: unitId,

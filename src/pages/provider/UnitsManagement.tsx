@@ -19,7 +19,7 @@ const UnitsManagement = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const { data: facilities, isLoading: facilitiesLoading } = useProviderFacilities();
-  const facilityId = facilities?.[0]?.id; // Use first facility for demo
+  const facilityId = facilities?.[0]?.id; // Use first facility
   const { data: units = [], isLoading: unitsLoading } = useUnits(facilityId);
   const deleteUnit = useDeleteUnit();
 
