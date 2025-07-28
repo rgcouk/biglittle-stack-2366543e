@@ -5,96 +5,59 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Ruler, Thermometer, Car, Camera, ArrowLeft, Filter } from "lucide-react"
+import { Ruler, Thermometer, Car, Camera, ArrowLeft, Filter, Loader2 } from "lucide-react"
 import { Link, useParams } from "react-router-dom"
+import { useFacility } from "@/hooks/useFacilities"
+import { useUnits } from "@/hooks/useUnits"
+import { formatCurrencyMonthly } from "@/lib/currency"
 
 export default function UnitBrowser() {
-  const { providerId = "demo-storage" } = useParams()
+  const { providerId } = useParams()
   const [priceRange, setPriceRange] = useState("all")
   const [unitType, setUnitType] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
 
-  const units = [
-    {
-      id: "U001",
-      size: "5x5",
-      price: 32,
-      type: "Standard",
-      features: ["Ground Floor", "Drive-Up Access"],
-      available: true,
-      floor: 1,
-      description: "Perfect for seasonal items, small furniture, and boxes"
-    },
-    {
-      id: "U015",
-      size: "5x5",
-      price: 38,
-      type: "Climate Controlled",
-      features: ["Climate Control", "Indoor Access"],
-      available: true,
-      floor: 2,
-      description: "Ideal for electronics, documents, and sensitive items"
-    },
-    {
-      id: "U025",
-      size: "5x10",
-      price: 48,
-      type: "Standard",
-      features: ["Ground Floor", "Drive-Up Access"],
-      available: true,
-      floor: 1,
-      description: "Great for studio flat contents or office storage"
-    },
-    {
-      id: "U032",
-      size: "5x10",
-      price: 52,
-      type: "Climate Controlled",
-      features: ["Climate Control", "Indoor Access", "24/7 Access"],
-      available: true,
-      floor: 2,
-      description: "Perfect for business files, artwork, and valuable items"
-    },
-    {
-      id: "U045",
-      size: "10x10",
-      price: 68,
-      type: "Standard",
-      features: ["Ground Floor", "Drive-Up Access", "Wide Door"],
-      available: true,
-      floor: 1,
-      description: "Suitable for 1-2 bedroom home contents and furniture"
-    },
-    {
-      id: "U052",
-      size: "10x10",
-      price: 78,
-      type: "Climate Controlled",
-      features: ["Climate Control", "Indoor Access", "Security Cameras"],
-      available: false,
-      floor: 2,
-      description: "Premium storage for valuable and sensitive belongings"
-    },
-  ]
+  const { data: facility, isLoading: facilityLoading } = useFacility(providerId || "")
+  const { data: units = [], isLoading: unitsLoading } = useUnits(providerId)
 
   const filteredUnits = units.filter(unit => {
-    const matchesSearch = unit.size.includes(searchTerm) || 
-                         unit.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         unit.features.some(f => f.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesSearch = unit.unit_number.includes(searchTerm) || 
+                         unit.size_category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (unit.features || []).some(f => f.toLowerCase().includes(searchTerm.toLowerCase()))
     
+    const priceInPounds = unit.monthly_price_pence / 100;
     const matchesPrice = priceRange === "all" || 
-                        (priceRange === "under-50" && unit.price < 50) ||
-                        (priceRange === "50-100" && unit.price >= 50 && unit.price <= 100) ||
-                        (priceRange === "over-100" && unit.price > 100)
+                        (priceRange === "under-50" && priceInPounds < 50) ||
+                        (priceRange === "50-100" && priceInPounds >= 50 && priceInPounds <= 100) ||
+                        (priceRange === "over-100" && priceInPounds > 100)
     
     const matchesType = unitType === "all" || 
-                       unit.type.toLowerCase().replace(" ", "-") === unitType
+                       unit.size_category.toLowerCase().replace(" ", "-") === unitType
 
-    return matchesSearch && matchesPrice && matchesType && unit.available
+    return matchesSearch && matchesPrice && matchesType && unit.status === "available"
   })
 
-  const getTypeIcon = (type: string) => {
-    return type === "Climate Controlled" ? Thermometer : Car
+  if (facilityLoading || unitsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!facility) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Facility not found</h2>
+          <p className="text-muted-foreground">The requested facility could not be found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const getTypeIcon = (features: string[]) => {
+    return features?.includes("Climate Controlled") ? Thermometer : Car
   }
 
   return (
@@ -109,7 +72,7 @@ export default function UnitBrowser() {
                 <span className="text-sm text-muted-foreground">Back to Storefront</span>
               </Link>
               <div className="w-px h-6 bg-border" />
-              <h1 className="text-2xl font-bold">Browse Available Units</h1>
+              <h1 className="text-2xl font-bold">Browse Available Units - {facility.name}</h1>
             </div>
           </div>
         </div>
@@ -159,8 +122,9 @@ export default function UnitBrowser() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="standard">Standard</SelectItem>
-                      <SelectItem value="climate-controlled">Climate Controlled</SelectItem>
+                       <SelectItem value="small">Small</SelectItem>
+                       <SelectItem value="medium">Medium</SelectItem>
+                       <SelectItem value="large">Large</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -196,30 +160,32 @@ export default function UnitBrowser() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredUnits.map((unit) => {
-                const TypeIcon = getTypeIcon(unit.type)
+                const TypeIcon = getTypeIcon(unit.features || [])
+                const hasClimateControl = unit.features?.includes("Climate Controlled")
                 return (
                   <Card key={unit.id} className="shadow-card hover:shadow-elevated transition-all duration-300">
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <Ruler className="h-5 w-5 text-primary" />
-                          <CardTitle className="text-xl">{unit.size}</CardTitle>
+                          <CardTitle className="text-xl">{unit.length_metres}m × {unit.width_metres}m</CardTitle>
                         </div>
                         <Badge variant="secondary" className="flex items-center space-x-1">
                           <TypeIcon className="h-3 w-3" />
-                          <span>{unit.type}</span>
+                          <span>{hasClimateControl ? "Climate Controlled" : "Standard"}</span>
                         </Badge>
                       </div>
                        <CardDescription>
-                         <span className="text-2xl font-bold text-primary">£{unit.price}</span>
-                         <span className="text-sm text-muted-foreground">/month</span>
+                         <span className="text-2xl font-bold text-primary">{formatCurrencyMonthly(unit.monthly_price_pence / 100)}</span>
                        </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground">{unit.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {unit.size_category} unit - Perfect for various storage needs
+                      </p>
                       
                       <div className="flex flex-wrap gap-1">
-                        {unit.features.map((feature, index) => (
+                        {unit.features?.map((feature, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
                             {feature}
                           </Badge>
@@ -242,9 +208,9 @@ export default function UnitBrowser() {
                           className="flex-1 bg-gradient-primary hover:opacity-90"
                           asChild
                         >
-                          <Link to={`/storefront/${providerId}/book/${unit.id}`}>
-                            Reserve Now
-                          </Link>
+                           <Link to={`/storefront/${providerId}/book/${unit.id}`}>
+                             Reserve Now
+                           </Link>
                         </Button>
                       </div>
                     </CardContent>
