@@ -4,17 +4,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { DollarSign, Download, Send, Home } from "lucide-react"
 import { Link } from "react-router-dom"
+import { formatCurrency } from "@/lib/currency"
 
 export default function BillingManagement() {
   const invoices = [
-    { id: "INV-001", customer: "John Smith", amount: 65, status: "Paid", dueDate: "2024-04-01", paidDate: "2024-03-28" },
-    { id: "INV-002", customer: "Jane Doe", amount: 175, status: "Overdue", dueDate: "2024-03-15", paidDate: null },
-    { id: "INV-003", customer: "Bob Wilson", amount: 95, status: "Pending", dueDate: "2024-04-10", paidDate: null },
+    { id: "INV-001", customer: "John Smith", amount: 8500, status: "Paid", dueDate: "2024-04-01", paidDate: "2024-03-28" },
+    { id: "INV-002", customer: "Jane Doe", amount: 18000, status: "Overdue", dueDate: "2024-03-15", paidDate: null },
+    { id: "INV-003", customer: "Bob Wilson", amount: 12000, status: "Pending", dueDate: "2024-04-10", paidDate: null },
   ]
 
   const stats = [
-    { title: "Monthly Revenue", value: "$12,450", change: "+15%" },
-    { title: "Outstanding", value: "$2,340", change: "-5%" },
+    { title: "Monthly Revenue", value: formatCurrency(124500 / 100), change: "+15%" },
+    { title: "Outstanding", value: formatCurrency(23400 / 100), change: "-5%" },
     { title: "Collection Rate", value: "94%", change: "+2%" },
   ]
 
@@ -36,35 +37,39 @@ export default function BillingManagement() {
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {/* Stats */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat) => (
-            <Card key={stat.title} className="shadow-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+          {stats.map((stat, index) => (
+            <Card key={index} className="shadow-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.change} from last month</p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-green-600">{stat.change}</span> from last month
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
 
+        {/* Recent Invoices */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              <span>Recent Invoices</span>
-            </CardTitle>
-            <CardDescription>Manage billing and payment processing</CardDescription>
+            <CardTitle>Recent Invoices</CardTitle>
+            <CardDescription>
+              A list of recent invoices and their payment status.
+            </CardDescription>
           </CardHeader>
-
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice</TableHead>
+                  <TableHead>Invoice ID</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Due Date</TableHead>
@@ -77,7 +82,7 @@ export default function BillingManagement() {
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">{invoice.id}</TableCell>
                     <TableCell>{invoice.customer}</TableCell>
-                    <TableCell>${invoice.amount}</TableCell>
+                    <TableCell>{formatCurrency(invoice.amount / 100)}</TableCell>
                     <TableCell>{invoice.dueDate}</TableCell>
                     <TableCell>
                       <Badge 
@@ -90,12 +95,14 @@ export default function BillingManagement() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4" />
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline">
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
                         </Button>
-                        <Button variant="outline" size="sm">
-                          <Send className="h-4 w-4" />
+                        <Button size="sm" variant="outline">
+                          <Send className="h-4 w-4 mr-2" />
+                          Send
                         </Button>
                       </div>
                     </TableCell>

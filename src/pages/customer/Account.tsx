@@ -2,31 +2,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { User, CreditCard, FileText, Building2, Phone, Mail } from "lucide-react"
+import { User, CreditCard, FileText, Building2, Phone, Mail, Loader2 } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useProfile } from "@/hooks/useProfiles"
+import { useCustomerBookings } from "@/hooks/useBookings"
+import { useAuth } from "@/hooks/useAuth"
+import { formatCurrency } from "@/lib/currency"
 
 export default function CustomerAccount() {
-  const customer = {
-    name: "John Smith",
-    email: "john@example.com",
-    phone: "(555) 123-4567",
-    memberSince: "January 2024"
+  const { user, signOut } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: bookings = [], isLoading: bookingsLoading } = useCustomerBookings();
+
+  if (profileLoading || bookingsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
-  const unit = {
-    id: "U002",
-    size: "5x10",
-    facility: "Premier Storage Solutions",
-    monthlyRate: 65,
-    leaseStart: "2024-01-15",
-    status: "Active"
-  }
-
+  const currentBooking = bookings.find(booking => booking.status === "active");
+  
+  // Mock payment history for demo - in production this would come from payments table
   const invoices = [
-    { id: "INV-001", date: "2024-04-01", amount: 65, status: "Paid" },
-    { id: "INV-002", date: "2024-03-01", amount: 65, status: "Paid" },
-    { id: "INV-003", date: "2024-02-01", amount: 65, status: "Paid" },
-  ]
+    { id: "INV-001", date: "2024-04-01", amount: 8500, status: "Paid" },
+    { id: "INV-002", date: "2024-03-01", amount: 8500, status: "Paid" },
+    { id: "INV-003", date: "2024-02-01", amount: 8500, status: "Paid" },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -36,10 +39,10 @@ export default function CustomerAccount() {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">My Account</h1>
             <div className="flex items-center space-x-4">
-              <Link to="/storefront" className="text-primary hover:underline">
+              <Link to="/demo" className="text-primary hover:underline">
                 Find More Storage
               </Link>
-              <Button variant="outline">Sign Out</Button>
+              <Button variant="outline" onClick={signOut}>Sign Out</Button>
             </div>
           </div>
         </div>
@@ -58,18 +61,25 @@ export default function CustomerAccount() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="font-medium">{customer.name}</h3>
-                  <p className="text-sm text-muted-foreground">Member since {customer.memberSince}</p>
+                  <h3 className="font-medium">{profile?.display_name || user?.email}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Member since {new Date(profile?.created_at || user?.created_at || "").toLocaleDateString("en-GB", { 
+                      month: "long", 
+                      year: "numeric" 
+                    })}
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                    {customer.email}
+                    {user?.email}
                   </div>
-                  <div className="flex items-center text-sm">
-                    <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                    {customer.phone}
-                  </div>
+                  {profile?.phone && (
+                    <div className="flex items-center text-sm">
+                      <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                      {profile.phone}
+                    </div>
+                  )}
                 </div>
                 <Button variant="outline" className="w-full">
                   Edit Profile
@@ -77,36 +87,46 @@ export default function CustomerAccount() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <span>My Unit</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Unit {unit.id}</h3>
-                    <p className="text-sm text-muted-foreground">{unit.size} • {unit.facility}</p>
+            {currentBooking && (
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Building2 className="h-5 w-5 text-primary" />
+                    <span>My Unit</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium">Unit {currentBooking.unit?.unit_number}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {currentBooking.unit?.size_category} • Total Storage Boston
+                      </p>
+                    </div>
+                    <Badge variant="default" className="capitalize">{currentBooking.status}</Badge>
                   </div>
-                  <Badge variant="default">{unit.status}</Badge>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Monthly Rate:</span>
-                    <span>${unit.monthlyRate}</span>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Monthly Rate:</span>
+                      <span>{formatCurrency(currentBooking.monthly_rate_pence / 100)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Lease Start:</span>
+                      <span>{new Date(currentBooking.start_date).toLocaleDateString()}</span>
+                    </div>
+                    {currentBooking.end_date && (
+                      <div className="flex justify-between">
+                        <span>Lease End:</span>
+                        <span>{new Date(currentBooking.end_date).toLocaleDateString()}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between">
-                    <span>Lease Start:</span>
-                    <span>{unit.leaseStart}</span>
-                  </div>
-                </div>
-                <Button variant="outline" className="w-full">
-                  View Unit Details
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button variant="outline" className="w-full">
+                    View Unit Details
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Billing & Documents */}
@@ -159,7 +179,7 @@ export default function CustomerAccount() {
                       <TableRow key={invoice.id}>
                         <TableCell className="font-medium">{invoice.id}</TableCell>
                         <TableCell>{invoice.date}</TableCell>
-                        <TableCell>${invoice.amount}</TableCell>
+                        <TableCell>{formatCurrency(invoice.amount / 100)}</TableCell>
                         <TableCell>
                           <Badge variant="default">{invoice.status}</Badge>
                         </TableCell>
