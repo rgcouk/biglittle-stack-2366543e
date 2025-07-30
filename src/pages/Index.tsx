@@ -1,19 +1,33 @@
 import { Button } from "@/components/ui/button"
 import { HeroSection } from "@/components/ui/hero-section"
-import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap, LogIn, LogOut } from "lucide-react"
+import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap, LogIn, LogOut, Settings } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
+import { useUserRole } from "@/hooks/useUserRole"
 
 const Index = () => {
   const { user, signOut } = useAuth();
+  const { data: userRole, isLoading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   
   const handleGetStarted = () => {
     if (user) {
-      // If logged in, redirect to storefront
-      navigate("/storefront");
+      // If logged in, redirect based on role
+      if (userRole === 'provider') {
+        navigate("/provider/dashboard");
+      } else {
+        navigate("/storefront");
+      }
     } else {
       // If not logged in, go to auth page
+      navigate("/auth");
+    }
+  }
+  
+  const handleProviderAccess = () => {
+    if (user && userRole === 'provider') {
+      navigate("/provider/dashboard");
+    } else {
       navigate("/auth");
     }
   }
@@ -34,10 +48,25 @@ const Index = () => {
               size="lg" 
               className="bg-white text-primary hover:bg-white/90"
               onClick={handleGetStarted}
+              disabled={roleLoading}
             >
-              Get Started
+              {roleLoading ? "Loading..." : user && userRole === 'provider' ? "Go to Dashboard" : "Get Started"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
+            
+            {/* Provider Dashboard Button */}
+            {!user || userRole !== 'provider' ? (
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="bg-transparent border-white/30 text-white hover:bg-white/10"
+                onClick={handleProviderAccess}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                Provider Dashboard
+              </Button>
+            ) : null}
+            
             {user ? (
               <Button 
                 size="lg" 
@@ -125,8 +154,8 @@ const Index = () => {
               <p className="text-muted-foreground">
                 Manage your storage facility with powerful tools for unit management, customer relations, and billing automation.
               </p>
-              <Button variant="outline" asChild>
-                <Link to="/auth">Get Started as Provider</Link>
+              <Button variant="outline" onClick={handleProviderAccess}>
+                Get Started as Provider
               </Button>
             </div>
 
