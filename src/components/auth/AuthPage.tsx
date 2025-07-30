@@ -19,9 +19,9 @@ export default function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
-  // If user is already logged in, redirect to appropriate dashboard
+  // If user is already logged in, redirect providers to their dashboard
   if (user && !loading) {
-    const redirectTo = location.state?.from?.pathname || '/storefront';
+    const redirectTo = location.state?.from?.pathname || '/provider';
     return <Navigate to={redirectTo} replace />;
   }
 
@@ -111,14 +111,14 @@ export default function AuthPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">BigLittleBox</CardTitle>
-          <CardDescription>Sign in to your account or create a new one</CardDescription>
+          <CardDescription>Provider Sign In - Manage your storage facilities</CardDescription>
         </CardHeader>
         <CardContent>
 
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signup">Register Facility</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
@@ -215,18 +215,7 @@ export default function AuthPage() {
                     minLength={6}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-role">Account Type</Label>
-                  <Select name="role" defaultValue="customer">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select account type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="customer">Customer</SelectItem>
-                      <SelectItem value="provider">Storage Provider</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <input type="hidden" name="role" value="provider" />
                 <Button 
                   type="submit" 
                   className="w-full"
@@ -238,7 +227,7 @@ export default function AuthPage() {
                       Creating account...
                     </>
                   ) : (
-                    'Create Account'
+                    'Register Facility'
                   )}
                 </Button>
               </form>
