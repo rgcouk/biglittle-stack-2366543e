@@ -9,3 +9,5 @@ max_rows = 1000
 
 [db]
 port = 5432
+
+# Force config refresh
