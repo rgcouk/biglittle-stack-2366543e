@@ -1,19 +1,20 @@
 import { Button } from "@/components/ui/button"
 import { HeroSection } from "@/components/ui/hero-section"
 import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap, LogIn, LogOut } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
 
 const Index = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   
   const handleGetStarted = () => {
     if (user) {
-      // If logged in, redirect based on role or to storefront
-      window.location.href = "/storefront"
+      // If logged in, redirect to storefront
+      navigate("/storefront");
     } else {
       // If not logged in, go to auth page
-      window.location.href = "/auth"
+      navigate("/auth");
     }
   }
 
