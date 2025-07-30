@@ -8,12 +8,13 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AuthPage from "@/components/auth/AuthPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import ProviderDashboard from "./pages/provider/Dashboard";
+import ProviderRouter from "@/components/provider/ProviderRouter";
 import UnitsManagement from "./pages/provider/UnitsManagement";
 import CustomersManagement from "./pages/provider/CustomersManagement";
 import BillingManagement from "./pages/provider/BillingManagement";
 import ProviderAnalytics from "./pages/provider/Analytics";
 import SiteCustomization from "./pages/provider/SiteCustomization";
+import FacilityOnboarding from "@/components/onboarding/FacilityOnboarding";
 import CustomerStorefront from "./pages/customer/Storefront";
 import UnitBrowser from "./pages/customer/UnitBrowser";
 import UnitDetails from "./pages/customer/UnitDetails";
@@ -36,7 +37,7 @@ const App = () => (
             {/* Storage Provider Dashboard Routes */}
             <Route path="/provider" element={
               <ProtectedRoute requiredRole="provider">
-                <ProviderDashboard />
+                <ProviderRouter />
               </ProtectedRoute>
             } />
             <Route path="/provider/units" element={
@@ -62,6 +63,11 @@ const App = () => (
             <Route path="/provider/customize" element={
               <ProtectedRoute requiredRole="provider">
                 <SiteCustomization />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/onboarding" element={
+              <ProtectedRoute requiredRole="provider">
+                <FacilityOnboarding />
               </ProtectedRoute>
             } />
             

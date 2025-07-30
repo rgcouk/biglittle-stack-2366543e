@@ -21,7 +21,7 @@ export default function AuthPage() {
 
   // If user is already logged in, redirect providers to their dashboard
   if (user && !loading) {
-    const redirectTo = location.state?.from?.pathname || '/provider';
+    const redirectTo = location.state?.from?.pathname || '/provider/onboarding';
     return <Navigate to={redirectTo} replace />;
   }
 
