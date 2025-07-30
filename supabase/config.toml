@@ -3,11 +3,9 @@ project_id = "qowgpyakcsrybksyziot"
 [api]
 enabled = true
 port = 54321
-schemas = ["public", "api", "graphql_public"]
-extra_search_path = ["public", "extensions"]
+schemas = ["public"]
+extra_search_path = ["public"]
 max_rows = 1000
 
 [db]
 port = 5432
-
-# Force config refresh

@@ -16,19 +16,16 @@ export function useUserRole() {
       console.log('useUserRole: Fetching role for user:', user.id);
       
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('user_id', user.id)
-          .maybeSingle();
+        // Use the database function instead of direct table access
+        const { data, error } = await supabase.rpc('get_current_user_role');
         
         if (error) {
           console.error('Error fetching user role:', error);
           return null;
         }
         
-        console.log('useUserRole: User role fetched:', data?.role);
-        return data?.role || null;
+        console.log('useUserRole: User role fetched:', data);
+        return data || null;
       } catch (err) {
         console.error('Unexpected error in useUserRole:', err);
         return null;
