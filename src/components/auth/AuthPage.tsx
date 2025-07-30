@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AuthPage() {
   const { user, signIn, signUp, loading } = useAuth();
@@ -16,6 +17,7 @@ export default function AuthPage() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   // If user is already logged in, redirect to appropriate dashboard
   if (user && !loading) {
@@ -66,6 +68,30 @@ export default function AuthPage() {
       toast({
         title: "Account created!",
         description: "Please check your email to verify your account.",
+      });
+    }
+    
+    setIsSubmitting(false);
+  };
+
+  const handlePasswordReset = async (email: string) => {
+    setIsSubmitting(true);
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`
+    });
+    
+    if (error) {
+      toast({
+        title: "Reset failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setResetSent(true);
+      toast({
+        title: "Reset email sent",
+        description: "Check your email for password reset instructions.",
       });
     }
     
@@ -131,6 +157,28 @@ export default function AuthPage() {
                     'Sign In'
                   )}
                 </Button>
+                <div className="text-center">
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    className="text-sm"
+                    onClick={() => {
+                      const email = document.querySelector('#signin-email') as HTMLInputElement;
+                      if (email?.value) {
+                        handlePasswordReset(email.value);
+                      } else {
+                        toast({
+                          title: "Email required",
+                          description: "Please enter your email address first",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    Forgot your password?
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             
