@@ -11,23 +11,30 @@ const Index = () => {
   const navigate = useNavigate();
   
   const handleGetStarted = () => {
+    console.log('handleGetStarted - user:', !!user, 'userRole:', userRole, 'roleLoading:', roleLoading);
     if (user) {
       // If logged in, redirect based on role
       if (userRole === 'provider') {
-        navigate("/provider/dashboard");
+        console.log('Redirecting provider to /provider');
+        navigate("/provider");
       } else {
+        console.log('Redirecting customer to /storefront');
         navigate("/storefront");
       }
     } else {
       // If not logged in, go to auth page
+      console.log('Redirecting to auth');
       navigate("/auth");
     }
   }
   
   const handleProviderAccess = () => {
+    console.log('handleProviderAccess - user:', !!user, 'userRole:', userRole);
     if (user && userRole === 'provider') {
-      navigate("/provider/dashboard");
+      console.log('Provider accessing dashboard');
+      navigate("/provider");
     } else {
+      console.log('Redirecting to auth for provider access');
       navigate("/auth");
     }
   }
