@@ -9,11 +9,8 @@ export function useUserRole() {
     queryKey: ['userRole', user?.id],
     queryFn: async () => {
       if (!user) {
-        console.log('useUserRole: No user found');
         return null;
       }
-      
-      console.log('useUserRole: Fetching role for user:', user.id);
       
       try {
         // Direct table query - more reliable than function calls
@@ -24,14 +21,11 @@ export function useUserRole() {
           .single();
         
         if (error) {
-          console.error('Error fetching user role:', error);
           return null;
         }
         
-        console.log('useUserRole: User role fetched:', data?.role);
         return data?.role || null;
       } catch (err) {
-        console.error('Unexpected error in useUserRole:', err);
         return null;
       }
     },

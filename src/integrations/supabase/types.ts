@@ -50,13 +50,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "bookings_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "bookings_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
@@ -102,15 +95,7 @@ export type Database = {
           provider_id?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "facilities_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       payments: {
         Row: {
@@ -152,39 +137,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      profiles: {
-        Row: {
-          company_name: string | null
-          created_at: string
-          display_name: string | null
-          id: string
-          phone: string | null
-          role: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          company_name?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          phone?: string | null
-          role?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          company_name?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          phone?: string | null
-          role?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       units: {
         Row: {

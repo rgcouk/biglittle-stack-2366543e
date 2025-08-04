@@ -11,24 +11,18 @@ const Index = () => {
   const navigate = useNavigate();
   
   const handleGetStarted = () => {
-    console.log('handleGetStarted - user:', !!user, 'userRole:', userRole, 'roleLoading:', roleLoading);
     if (user && userRole === 'provider') {
-      console.log('Redirecting provider to /provider');
       navigate("/provider");
     } else {
       // If not logged in or not a provider, go to auth page
-      console.log('Redirecting to auth');
       navigate("/auth");
     }
   }
   
   const handleProviderAccess = () => {
-    console.log('handleProviderAccess - user:', !!user, 'userRole:', userRole);
     if (user && userRole === 'provider') {
-      console.log('Provider accessing dashboard');
       navigate("/provider");
     } else {
-      console.log('Redirecting to auth for provider access');
       navigate("/auth");
     }
   }
