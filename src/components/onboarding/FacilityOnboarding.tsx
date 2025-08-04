@@ -46,7 +46,10 @@ export default function FacilityOnboarding() {
       // Create the facility - provider_id will be set automatically via trigger
       const { data: facility, error: facilityError } = await supabase
         .from('facilities')
-        .insert(facilityData)
+        .insert({
+          ...facilityData,
+          provider_id: '00000000-0000-0000-0000-000000000000' // Placeholder, will be set by trigger
+        })
         .select()
         .single();
 
