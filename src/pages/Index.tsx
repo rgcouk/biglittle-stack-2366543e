@@ -12,17 +12,11 @@ const Index = () => {
   
   const handleGetStarted = () => {
     console.log('handleGetStarted - user:', !!user, 'userRole:', userRole, 'roleLoading:', roleLoading);
-    if (user) {
-      // If logged in, redirect based on role
-      if (userRole === 'provider') {
-        console.log('Redirecting provider to /provider');
-        navigate("/provider");
-      } else {
-        console.log('Redirecting customer to /storefront');
-        navigate("/storefront");
-      }
+    if (user && userRole === 'provider') {
+      console.log('Redirecting provider to /provider');
+      navigate("/provider");
     } else {
-      // If not logged in, go to auth page
+      // If not logged in or not a provider, go to auth page
       console.log('Redirecting to auth');
       navigate("/auth");
     }
@@ -168,27 +162,27 @@ const Index = () => {
 
             <div className="text-center space-y-4">
               <div className="mx-auto p-4 bg-primary/10 rounded-full w-fit">
-                <Users className="h-8 w-8 text-primary" />
+                <UserCheck className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">For Customers</h3>
+              <h3 className="text-xl font-semibold">Unit Management</h3>
               <p className="text-muted-foreground">
-                Find, book, and manage your storage unit with our intuitive customer portal and mobile-friendly interface.
+                Comprehensive unit tracking with availability, pricing, and features management for optimal facility operations.
               </p>
-              <Button variant="outline" asChild>
-                <Link to="/storefront">Browse Storage Units</Link>
+              <Button variant="outline" onClick={handleProviderAccess}>
+                Manage Units
               </Button>
             </div>
 
             <div className="text-center space-y-4">
               <div className="mx-auto p-4 bg-primary/10 rounded-full w-fit">
-                <UserCheck className="h-8 w-8 text-primary" />
+                <Zap className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Seamless Integration</h3>
+              <h3 className="text-xl font-semibold">Business Growth</h3>
               <p className="text-muted-foreground">
-                Built-in payment processing, automated billing, and comprehensive reporting keep your business running smoothly.
+                Scale your storage business with automated workflows, customer management, and detailed analytics.
               </p>
               <Button variant="outline" asChild>
-                <Link to="/auth">Learn More</Link>
+                <Link to="/auth">Start Growing</Link>
               </Button>
             </div>
           </div>

@@ -21,7 +21,6 @@ export type Database = {
           end_date: string | null
           id: string
           monthly_rate_pence: number
-          provider_customer_id: string | null
           start_date: string
           status: string
           unit_id: string
@@ -33,7 +32,6 @@ export type Database = {
           end_date?: string | null
           id?: string
           monthly_rate_pence: number
-          provider_customer_id?: string | null
           start_date: string
           status?: string
           unit_id: string
@@ -45,7 +43,6 @@ export type Database = {
           end_date?: string | null
           id?: string
           monthly_rate_pence?: number
-          provider_customer_id?: string | null
           start_date?: string
           status?: string
           unit_id?: string
@@ -57,13 +54,6 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_provider_customer_id_fkey"
-            columns: ["provider_customer_id"]
-            isOneToOne: false
-            referencedRelation: "provider_customers"
             referencedColumns: ["id"]
           },
           {
@@ -195,47 +185,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      provider_customers: {
-        Row: {
-          address: string | null
-          created_at: string
-          email: string
-          id: string
-          name: string
-          phone: string | null
-          provider_id: string
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string
-          email: string
-          id?: string
-          name: string
-          phone?: string | null
-          provider_id: string
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          created_at?: string
-          email?: string
-          id?: string
-          name?: string
-          phone?: string | null
-          provider_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "provider_customers_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       units: {
         Row: {

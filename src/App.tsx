@@ -10,16 +10,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProviderRouter from "@/components/provider/ProviderRouter";
 import UnitsManagement from "./pages/provider/UnitsManagement";
-import CustomersManagement from "./pages/provider/CustomersManagement";
-import BillingManagement from "./pages/provider/BillingManagement";
-import ProviderAnalytics from "./pages/provider/Analytics";
-import SiteCustomization from "./pages/provider/SiteCustomization";
+import ProviderSettings from "./pages/provider/Settings";
 import FacilityOnboarding from "@/components/onboarding/FacilityOnboarding";
-import CustomerStorefront from "./pages/customer/Storefront";
-import UnitBrowser from "./pages/customer/UnitBrowser";
-import UnitDetails from "./pages/customer/UnitDetails";
-import BookingFlow from "./pages/customer/BookingFlow";
-import CustomerAccount from "./pages/customer/Account";
 
 const queryClient = new QueryClient();
 
@@ -45,44 +37,14 @@ const App = () => (
                 <UnitsManagement />
               </ProtectedRoute>
             } />
-            <Route path="/provider/customers" element={
+            <Route path="/provider/settings" element={
               <ProtectedRoute requiredRole="provider">
-                <CustomersManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider/billing" element={
-              <ProtectedRoute requiredRole="provider">
-                <BillingManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider/analytics" element={
-              <ProtectedRoute requiredRole="provider">
-                <ProviderAnalytics />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider/customize" element={
-              <ProtectedRoute requiredRole="provider">
-                <SiteCustomization />
+                <ProviderSettings />
               </ProtectedRoute>
             } />
             <Route path="/provider/onboarding" element={
               <ProtectedRoute requiredRole="provider">
                 <FacilityOnboarding />
-              </ProtectedRoute>
-            } />
-            
-            {/* Customer Routes */}
-            <Route path="/storefront" element={<CustomerStorefront />} />
-            <Route path="/units" element={<UnitBrowser />} />
-            <Route path="/unit/:unitId" element={<UnitDetails />} />
-            <Route path="/book/:unitId" element={
-              <ProtectedRoute>
-                <BookingFlow />
-              </ProtectedRoute>
-            } />
-            <Route path="/account" element={
-              <ProtectedRoute>
-                <CustomerAccount />
               </ProtectedRoute>
             } />
             
