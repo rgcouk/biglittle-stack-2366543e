@@ -13,18 +13,15 @@ export function useUserRole() {
       }
       
       try {
-        // Direct table query - more reliable than function calls
+        // Query from the api schema using the correct schema prefix
         const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
+          .rpc('get_current_user_role');
         
         if (error) {
           return null;
         }
         
-        return data?.role || null;
+        return data || null;
       } catch (err) {
         return null;
       }

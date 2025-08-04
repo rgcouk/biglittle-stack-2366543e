@@ -1,51 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useProfile, useUpdateProfile } from "@/hooks/useProfiles";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Settings, User, CreditCard } from "lucide-react";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { Settings, User, CreditCard } from "lucide-react";
 
 export default function ProviderSettings() {
   const { signOut } = useAuth();
-  const { data: profile, isLoading } = useProfile();
-  const updateProfile = useUpdateProfile();
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    display_name: profile?.display_name || '',
-    company_name: profile?.company_name || '',
-    phone: profile?.phone || '',
-  });
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSaveProfile = async () => {
-    try {
-      await updateProfile.mutateAsync(formData);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,7 +14,7 @@ export default function ProviderSettings() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-              <p className="text-muted-foreground">Manage your account and billing preferences</p>
+              <p className="text-muted-foreground">Manage your account preferences</p>
             </div>
             <Button 
               variant="outline" 
@@ -67,56 +26,19 @@ export default function ProviderSettings() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Profile Settings */}
+            {/* Account Info */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  Profile Information
+                  Account Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="display_name">Display Name</Label>
-                  <Input
-                    id="display_name"
-                    value={formData.display_name}
-                    onChange={(e) => handleInputChange('display_name', e.target.value)}
-                    placeholder="Your name"
-                  />
+                <div className="text-sm text-muted-foreground">
+                  <p>Account Type: <span className="font-medium text-foreground">Provider</span></p>
+                  <p>Status: <span className="font-medium text-green-600">Active</span></p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="company_name">Company Name</Label>
-                  <Input
-                    id="company_name"
-                    value={formData.company_name}
-                    onChange={(e) => handleInputChange('company_name', e.target.value)}
-                    placeholder="Your company"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="Your phone number"
-                  />
-                </div>
-                <Button 
-                  onClick={handleSaveProfile}
-                  disabled={updateProfile.isPending}
-                  className="w-full"
-                >
-                  {updateProfile.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </Button>
               </CardContent>
             </Card>
 

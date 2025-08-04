@@ -15,20 +15,21 @@ export default function ProviderRouter() {
       if (!user) return;
 
       try {
-        // Get user's profile
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
+        // Get user's role first
+        const { data: userRole, error: roleError } = await supabase
+          .rpc('get_current_user_role');
 
-        if (profileError) throw profileError;
+        if (roleError) throw roleError;
 
-        // Check if they have a facility
+        if (userRole !== 'provider') {
+          setHasFacility(false);
+          return;
+        }
+
+        // Check if they have a facility using a simple query
         const { data: facilities, error: facilityError } = await supabase
           .from('facilities')
           .select('id')
-          .eq('provider_id', profile.id)
           .limit(1);
 
         if (facilityError) throw facilityError;

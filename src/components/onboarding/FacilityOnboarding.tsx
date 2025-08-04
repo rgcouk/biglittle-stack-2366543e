@@ -33,22 +33,20 @@ export default function FacilityOnboarding() {
     };
 
     try {
-      // Get user's profile first
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      // Get user's role using the function
+      const { data: userRole, error: roleError } = await supabase
+        .rpc('get_current_user_role');
 
-      if (profileError) throw profileError;
+      if (roleError) throw roleError;
 
-      // Create the facility
+      if (userRole !== 'provider') {
+        throw new Error('Only providers can create facilities');
+      }
+
+      // Create the facility - provider_id will be set automatically via trigger
       const { data: facility, error: facilityError } = await supabase
         .from('facilities')
-        .insert({
-          ...facilityData,
-          provider_id: profile.id,
-        })
+        .insert(facilityData)
         .select()
         .single();
 
