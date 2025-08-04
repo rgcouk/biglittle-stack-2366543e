@@ -36,7 +36,6 @@ export default function ProviderRouter() {
 
         setHasFacility(facilities && facilities.length > 0);
       } catch (error) {
-        console.error('Error checking facility:', error);
         setHasFacility(false);
       } finally {
         setLoading(false);

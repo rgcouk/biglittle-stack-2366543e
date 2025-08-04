@@ -30,13 +30,11 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
 
   // Handle role verification errors
   if (roleError) {
-    console.error('Role verification failed:', roleError);
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // Check user role if required (SECURITY CRITICAL FIX)
   if (requiredRole && userRole !== requiredRole) {
-    console.warn(`Access denied: required role '${requiredRole}', user has role '${userRole}'`);
     return <Navigate to="/" replace />;
   }
 

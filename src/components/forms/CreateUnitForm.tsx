@@ -81,7 +81,7 @@ export function CreateUnitForm({ onSuccess }: CreateUnitFormProps) {
       setSelectedFeatures([]);
       onSuccess?.();
     } catch (error) {
-      console.error('Failed to create unit:', error);
+      // Silent error handling - do not expose error details
     }
   };
 
