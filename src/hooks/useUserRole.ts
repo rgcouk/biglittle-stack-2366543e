@@ -10,7 +10,7 @@ export function useUserRole() {
     queryFn: async () => {
       if (!user) return null;
 
-      const { data, error } = await supabase.rpc('api.get_current_user_role');
+      const { data, error } = await supabase.rpc('get_current_user_role');
       
       if (error) throw error;
 
