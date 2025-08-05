@@ -1,11 +1,1 @@
 project_id = "qowgpyakcsrybksyziot"
-
-[api]
-enabled = true
-port = 54321
-schemas = ["public", "api"]
-extra_search_path = ["public"]
-max_rows = 1000
-
-[db]
-port = 5432
