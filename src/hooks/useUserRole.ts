@@ -10,8 +10,17 @@ export function useUserRole() {
     queryFn: async () => {
       if (!user) return null;
 
-      const { data, error } = await supabase.rpc('get_current_user_role');
-      
+      // Try API schema first, then fallback to public
+      const apiClient = (supabase as any).schema('api');
+      const { data, error } = await apiClient.rpc('get_current_user_role');
+
+      // Fallback: try public schema if API not found
+      if (error && (error?.message?.includes('Not Found') || (error as any)?.code === '404')) {
+        const res = await supabase.rpc('get_current_user_role');
+        if (res.error) throw res.error;
+        return res.data || null;
+      }
+
       if (error) throw error;
 
       return data || null;

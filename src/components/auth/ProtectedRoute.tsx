@@ -28,9 +28,13 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Handle role verification errors
+  // Handle role verification errors without causing auth loops
   if (roleError) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return requiredRole ? (
+      <Navigate to="/" replace />
+    ) : (
+      <>{children}</>
+    );
   }
 
   // Check user role if required (SECURITY CRITICAL FIX)
