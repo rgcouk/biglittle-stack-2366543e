@@ -15,7 +15,7 @@ BEGIN
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email),
-    'customer'
+    COALESCE(NEW.raw_user_meta_data->>'role', 'customer')
   )
   ON CONFLICT (user_id) DO NOTHING;
   RETURN NEW;
