@@ -9,6 +9,7 @@ export default function ProviderRouter() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [hasFacility, setHasFacility] = useState(false);
+  const [isProvider, setIsProvider] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkFacility = async () => {
@@ -16,15 +17,19 @@ export default function ProviderRouter() {
 
       try {
         // Get user's role first
-        const { data: userRole, error: roleError } = await supabase
+        const { data: userRole, error: roleError } = await (supabase as any)
+          .schema('api')
           .rpc('get_current_user_role');
 
         if (roleError) throw roleError;
 
         if (userRole !== 'provider') {
+          setIsProvider(false);
           setHasFacility(false);
           return;
         }
+
+        setIsProvider(true);
 
         // Check if they have a facility using a simple query
         const { data: facilities, error: facilityError } = await supabase
@@ -53,7 +58,11 @@ export default function ProviderRouter() {
     );
   }
 
-  if (!hasFacility) {
+  if (!loading && isProvider === false) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (isProvider && !hasFacility) {
     return <Navigate to="/provider/onboarding" replace />;
   }
 

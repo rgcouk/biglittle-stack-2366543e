@@ -34,7 +34,8 @@ export default function FacilityOnboarding() {
 
     try {
       // Get user's role using the function
-      const { data: userRole, error: roleError } = await supabase
+      const { data: userRole, error: roleError } = await (supabase as any)
+        .schema('api')
         .rpc('get_current_user_role');
 
       if (roleError) throw roleError;
