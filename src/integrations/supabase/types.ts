@@ -68,7 +68,7 @@ export type Database = {
           name: string
           phone: string | null
           postcode: string
-          provider_id: string
+          provider_id: number | null
           updated_at: string
         }
         Insert: {
@@ -80,7 +80,7 @@ export type Database = {
           name: string
           phone?: string | null
           postcode: string
-          provider_id: string
+          provider_id?: number | null
           updated_at?: string
         }
         Update: {
@@ -92,10 +92,18 @@ export type Database = {
           name?: string
           phone?: string | null
           postcode?: string
-          provider_id?: string
+          provider_id?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "facilities_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -138,30 +146,18 @@ export type Database = {
           },
         ]
       }
-      profiles: {
+      providers: {
         Row: {
-          created_at: string
-          display_name: string | null
-          id: string
-          role: string
-          updated_at: string
-          user_id: string
+          id: number
+          uuid: string
         }
         Insert: {
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          role?: string
-          updated_at?: string
-          user_id: string
+          id?: never
+          uuid: string
         }
         Update: {
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          role?: string
-          updated_at?: string
-          user_id?: string
+          id?: never
+          uuid?: string
         }
         Relationships: []
       }
