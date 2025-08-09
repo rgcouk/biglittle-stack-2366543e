@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Loader2, Building2 } from 'lucide-react';
 
 export default function FacilityOnboarding() {
@@ -15,6 +16,7 @@ export default function FacilityOnboarding() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { data: userRole } = useUserRole();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,24 +34,17 @@ export default function FacilityOnboarding() {
       description: formData.get('description') as string,
     };
 
-    try {
-      // Get user's role using the function
-      const { data: userRole, error: roleError } = await (supabase as any)
-        .schema('api')
-        .rpc('get_current_user_role');
-
-      if (roleError) throw roleError;
-
+try {
+      // Ensure only providers can create facilities
       if (userRole !== 'provider') {
         throw new Error('Only providers can create facilities');
       }
 
-      // Create the facility - provider_id will be set automatically via trigger
+// Create the facility - provider_id will be set automatically via trigger
       const { data: facility, error: facilityError } = await supabase
         .from('facilities')
         .insert({
-          ...facilityData,
-          provider_id: '00000000-0000-0000-0000-000000000000' // Placeholder, will be set by trigger
+          ...facilityData
         })
         .select()
         .single();
