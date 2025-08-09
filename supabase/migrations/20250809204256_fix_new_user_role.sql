@@ -11,7 +11,3 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public';
-
-
- git config --global user.email "rgcouk@gmail.com"
-git config --global user.name "rgcouk"
