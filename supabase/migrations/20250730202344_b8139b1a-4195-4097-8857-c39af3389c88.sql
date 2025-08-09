@@ -1,4 +1,0 @@
--- This migration file has been intentionally cleared.
--- It previously contained logic that deleted and re-inserted demo data,
--- which conflicts with the current database state.
--- No changes will be applied here.

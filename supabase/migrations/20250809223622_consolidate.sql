@@ -1,4 +1,25 @@
--- Create profiles table for user information
+-- Phase 1: Clean Up & Rebuild
+---------------------------------
+
+-- Drop all existing tables, functions, and triggers to start from a clean slate
+DROP TABLE IF EXISTS public.payments;
+DROP TABLE IF EXISTS public.bookings;
+DROP TABLE IF EXISTS public.units;
+DROP TABLE IF EXISTS public.facilities;
+DROP TABLE IF EXISTS public.profiles;
+DROP TABLE IF EXISTS public.providers;
+DROP TABLE IF EXISTS public.provider_customers CASCADE;
+
+DROP FUNCTION IF EXISTS public.handle_new_user;
+DROP FUNCTION IF EXISTS public.set_facility_provider_id;
+DROP FUNCTION IF EXISTS public.set_facility_provider_id_from_providers;
+DROP FUNCTION IF EXISTS public.get_current_user_role;
+DROP FUNCTION IF EXISTS public.update_updated_at_column;
+
+-- Phase 2: Create Tables
+---------------------------------
+
+-- Create profiles table for user information (providers only)
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE NOT NULL,
@@ -32,7 +53,7 @@ CREATE TABLE public.units (
   size_category TEXT NOT NULL,
   width_metres DECIMAL(4,2),
   length_metres DECIMAL(4,2),
-  height_metres DECIMAL(2,2),
+  height_metres NUMERIC(5,2),
   floor_level INTEGER DEFAULT 0,
   monthly_price_pence INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'occupied', 'maintenance', 'reserved')),
@@ -67,55 +88,117 @@ CREATE TABLE public.payments (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Enable Row Level Security on all tables
+-- Phase 3: Create Functions & Triggers
+------------------------------------------
+
+-- Function to handle new user signups and set a role from metadata
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (user_id, display_name, role)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email),
+    COALESCE(NEW.raw_user_meta_data->>'role', 'customer')
+  )
+  ON CONFLICT (user_id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public';
+
+-- Function to set facility provider_id from the current user
+CREATE OR REPLACE FUNCTION public.set_facility_provider_id()
+RETURNS TRIGGER AS $$
+BEGIN
+  SELECT id INTO NEW.provider_id
+  FROM public.profiles
+  WHERE user_id = auth.uid() AND role = 'provider';
+
+  IF NEW.provider_id IS NULL THEN
+    RAISE EXCEPTION 'Only providers can create facilities';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public';
+
+-- Function to automatically update the updated_at timestamp
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public';
+
+-- Function to get the current user role for RLS
+CREATE OR REPLACE FUNCTION public.get_current_user_role()
+RETURNS TEXT
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT role FROM public.profiles WHERE user_id = auth.uid();
+$$;
+
+-- Create triggers
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+CREATE TRIGGER update_profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_facilities_updated_at
+  BEFORE UPDATE ON public.facilities
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER set_facility_provider_trigger
+  BEFORE INSERT ON public.facilities
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_facility_provider_id();
+
+-- Phase 4: Security (Row Level Security)
+------------------------------------------
+
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.facilities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
--- Create security definer function to get current user role
-CREATE OR REPLACE FUNCTION public.get_current_user_role()
-RETURNS TEXT AS $$
-  SELECT role FROM public.profiles WHERE user_id = auth.uid();
-$$ LANGUAGE SQL SECURITY DEFINER STABLE;
-
--- RLS Policies for profiles
+-- Policies for profiles
 CREATE POLICY "Users can view own profile" ON public.profiles
   FOR SELECT USING (user_id = auth.uid());
-
-CREATE POLICY "Users can update own profile" ON public.profiles
-  FOR UPDATE USING (user_id = auth.uid());
-
 CREATE POLICY "Users can insert own profile" ON public.profiles
   FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Users can update own profile" ON public.profiles
+  FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
--- RLS Policies for facilities
+-- Policies for facilities
 CREATE POLICY "Providers can manage own facilities" ON public.facilities
   FOR ALL USING (provider_id IN (
     SELECT id FROM public.profiles WHERE user_id = auth.uid() AND role = 'provider'
   ));
-
 CREATE POLICY "Customers can view facilities" ON public.facilities
   FOR SELECT USING (true);
 
--- RLS Policies for units
+-- Policies for units
 CREATE POLICY "Providers can manage units in own facilities" ON public.units
   FOR ALL USING (facility_id IN (
     SELECT f.id FROM public.facilities f
     JOIN public.profiles p ON f.provider_id = p.id
     WHERE p.user_id = auth.uid() AND p.role = 'provider'
   ));
-
 CREATE POLICY "Customers can view available units" ON public.units
   FOR SELECT USING (true);
 
--- RLS Policies for bookings
+-- Policies for bookings
 CREATE POLICY "Customers can view own bookings" ON public.bookings
   FOR SELECT USING (customer_id IN (
     SELECT id FROM public.profiles WHERE user_id = auth.uid()
   ));
-
 CREATE POLICY "Providers can view bookings for their units" ON public.bookings
   FOR SELECT USING (unit_id IN (
     SELECT u.id FROM public.units u
@@ -123,13 +206,12 @@ CREATE POLICY "Providers can view bookings for their units" ON public.bookings
     JOIN public.profiles p ON f.provider_id = p.id
     WHERE p.user_id = auth.uid() AND p.role = 'provider'
   ));
-
 CREATE POLICY "Customers can create own bookings" ON public.bookings
   FOR INSERT WITH CHECK (customer_id IN (
     SELECT id FROM public.profiles WHERE user_id = auth.uid()
   ));
 
--- RLS Policies for payments
+-- Policies for payments
 CREATE POLICY "Users can view own payments" ON public.payments
   FOR SELECT USING (booking_id IN (
     SELECT b.id FROM public.bookings b
@@ -142,47 +224,3 @@ CREATE POLICY "Users can view own payments" ON public.payments
     JOIN public.profiles p ON f.provider_id = p.id
     WHERE p.user_id = auth.uid() AND p.role = 'provider'
   ));
-
--- Create triggers for updated_at timestamps
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_profiles_updated_at
-  BEFORE UPDATE ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_facilities_updated_at
-  BEFORE UPDATE ON public.facilities
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_units_updated_at
-  BEFORE UPDATE ON public.units
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_bookings_updated_at
-  BEFORE UPDATE ON public.bookings
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
--- Create function to handle new user signup
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (user_id, display_name, role)
-  VALUES (
-    NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'customer')
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create trigger for new user signup
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
