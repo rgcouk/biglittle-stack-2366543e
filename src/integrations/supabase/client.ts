@@ -13,5 +13,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  }
+  },
+  global: {
+    headers: {
+      Accept: 'application/json',
+    },
+  },
+  db: {
+    schema: 'public',
+  },
 });
