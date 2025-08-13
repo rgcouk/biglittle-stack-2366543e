@@ -34,17 +34,30 @@ export default function FacilityOnboarding() {
       description: formData.get('description') as string,
     };
 
-try {
+    try {
       // Ensure only providers can create facilities
       if (userRole !== 'provider') {
         throw new Error('Only providers can create facilities');
       }
 
-// Create the facility - provider_id will be set automatically via trigger
+      // Get the provider profile ID
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('role', 'provider')
+        .single();
+
+      if (profileError || !profile) {
+        throw new Error('Provider profile not found');
+      }
+
+      // Create the facility with explicit provider_id
       const { data: facility, error: facilityError } = await supabase
         .from('facilities')
         .insert({
-          ...facilityData
+          ...facilityData,
+          provider_id: profile.id
         })
         .select()
         .single();
