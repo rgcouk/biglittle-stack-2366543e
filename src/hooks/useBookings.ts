@@ -33,9 +33,12 @@ export function useCustomerBookings() {
         .from('bookings')
         .select(`
           *,
-          unit:units(*),
-          facility:units(facility:facilities(*))
+          unit:units (
+            *,
+            facility:facilities (*)
+          )
         `)
+        .eq('customer_id', (await supabase.auth.getUser()).data.user?.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;

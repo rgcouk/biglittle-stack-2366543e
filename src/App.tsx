@@ -12,6 +12,10 @@ import ProviderRouter from "@/components/provider/ProviderRouter";
 import UnitsManagement from "./pages/provider/UnitsManagement";
 import ProviderSettings from "./pages/provider/Settings";
 import FacilityOnboarding from "@/components/onboarding/FacilityOnboarding";
+import FacilityStorefront from "./pages/FacilityStorefront";
+import CustomerLayout from "@/components/customer/CustomerLayout";
+import CustomerDashboard from "./pages/customer/Dashboard";
+import CustomerBookings from "./pages/customer/Bookings";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +51,19 @@ const App = () => (
                 <FacilityOnboarding />
               </ProtectedRoute>
             } />
+            
+            {/* Public Facility Storefronts */}
+            <Route path="/facility/:facilityId" element={<FacilityStorefront />} />
+            
+            {/* Customer Portal Routes */}
+            <Route path="/customer" element={
+              <ProtectedRoute requiredRole="customer">
+                <CustomerLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<CustomerDashboard />} />
+              <Route path="bookings" element={<CustomerBookings />} />
+            </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
