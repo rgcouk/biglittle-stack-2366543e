@@ -6,7 +6,7 @@ export function usePublicFacilities() {
     queryKey: ['public-facilities'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('facilities_safe_public')
+        .from('facilities_public_marketing')
         .select('*')
         .order('name');
       
@@ -21,7 +21,7 @@ export function usePublicFacility(facilityId: string) {
     queryKey: ['public-facility', facilityId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('facilities_safe_public')
+        .from('facilities_public_marketing')
         .select('*')
         .eq('id', facilityId)
         .single();

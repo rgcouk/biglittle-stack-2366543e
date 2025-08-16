@@ -105,6 +105,36 @@ export type Database = {
           },
         ]
       }
+      facilities_public_marketing: {
+        Row: {
+          address: string
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          postcode: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          created_at?: string | null
+          description?: string | null
+          id: string
+          name: string
+          postcode: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          postcode?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount_pence: number
