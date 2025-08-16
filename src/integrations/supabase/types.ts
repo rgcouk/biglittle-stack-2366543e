@@ -237,11 +237,48 @@ export type Database = {
             referencedRelation: "facilities_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "units_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities_safe_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
       facilities_public: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          name: string | null
+          postcode: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          name?: string | null
+          postcode?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          name?: string | null
+          postcode?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      facilities_safe_public: {
         Row: {
           address: string | null
           created_at: string | null
