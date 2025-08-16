@@ -5,12 +5,12 @@ import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap, LogIn, 
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserRole } from "@/hooks/useUserRole"
-import { useFacilities } from "@/hooks/useFacilities"
+import { usePublicFacilities } from "@/hooks/usePublicFacilities"
 
 const Index = () => {
   const { user, signOut } = useAuth();
   const { data: userRole, isLoading: roleLoading } = useUserRole();
-  const { data: facilities, isLoading: facilitiesLoading } = useFacilities();
+  const { data: facilities, isLoading: facilitiesLoading } = usePublicFacilities();
   const navigate = useNavigate();
   
   const handleGetStarted = () => {

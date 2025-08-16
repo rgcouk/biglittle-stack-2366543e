@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom"
-import { useFacility } from "@/hooks/useFacilities"
+import { usePublicFacility, useAuthenticatedFacility } from "@/hooks/usePublicFacilities"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +18,14 @@ const FacilityStorefront = () => {
   const { data: userRole } = useUserRole()
   const navigate = useNavigate()
   
-  const { data: facility, isLoading: facilityLoading, error: facilityError } = useFacility(facilityId!)
+  // Use public facility data by default, authenticated data if user is logged in and needs contact info
+  const { data: publicFacility, isLoading: publicLoading, error: publicError } = usePublicFacility(facilityId!)
+  const { data: authFacility, isLoading: authLoading } = useAuthenticatedFacility(facilityId!)
+  
+  // Use authenticated facility data if available (has contact info), otherwise use public data
+  const facility = authFacility || publicFacility
+  const facilityLoading = user ? authLoading : publicLoading
+  const facilityError = publicError
   
   const { data: units, isLoading: unitsLoading } = useQuery({
     queryKey: ['facility-units', facilityId],
@@ -122,17 +129,30 @@ const FacilityStorefront = () => {
                   <span>{facility.address}, {facility.postcode}</span>
                 </div>
                 
-                {facility.phone && (
+                {authFacility?.phone && (
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4" />
-                    <span>{facility.phone}</span>
+                    <span>{authFacility.phone}</span>
                   </div>
                 )}
                 
-                {facility.email && (
+                {authFacility?.email && (
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
-                    <span>{facility.email}</span>
+                    <span>{authFacility.email}</span>
+                  </div>
+                )}
+                
+                {!authFacility && (
+                  <div className="text-primary-foreground/70 text-sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      asChild
+                      className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                    >
+                      <Link to="/auth">Sign in to view contact details</Link>
+                    </Button>
                   </div>
                 )}
               </div>
