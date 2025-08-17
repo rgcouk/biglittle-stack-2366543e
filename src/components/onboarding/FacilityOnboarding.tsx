@@ -41,6 +41,7 @@ export default function FacilityOnboarding() {
       }
 
       // Get the provider profile ID
+      console.log('Looking for profile with user_id:', user.id);
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
@@ -48,7 +49,10 @@ export default function FacilityOnboarding() {
         .eq('role', 'provider')
         .single();
 
+      console.log('Profile query result:', { profile, profileError });
+
       if (profileError || !profile) {
+        console.error('Profile error details:', profileError);
         throw new Error('Provider profile not found');
       }
 
