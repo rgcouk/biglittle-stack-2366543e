@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useCreateUnit } from '@/hooks/useUnits';
 import { useProviderFacilities } from '@/hooks/useFacilities';
 import { formatCurrency } from '@/lib/currency';
+import { useToast } from '@/hooks/use-toast';
 
 const createUnitSchema = z.object({
   facilityId: z.string().min(1, 'Please select a facility'),
@@ -47,6 +48,7 @@ export function CreateUnitForm({ onSuccess }: CreateUnitFormProps) {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const { data: facilities, isLoading: facilitiesLoading } = useProviderFacilities();
   const createUnit = useCreateUnit();
+  const { toast } = useToast();
 
   const form = useForm<CreateUnitData>({
     resolver: zodResolver(createUnitSchema),
@@ -77,11 +79,20 @@ export function CreateUnitForm({ onSuccess }: CreateUnitFormProps) {
         status: 'available',
       });
       
+      toast({
+        title: "Unit created successfully",
+        description: `Unit ${data.unitNumber} has been created and is now available for booking.`,
+      });
+      
       form.reset();
       setSelectedFeatures([]);
       onSuccess?.();
     } catch (error) {
-      // Silent error handling - do not expose error details
+      toast({
+        variant: "destructive",
+        title: "Failed to create unit",
+        description: "There was an error creating the unit. Please check your input and try again.",
+      });
     }
   };
 
