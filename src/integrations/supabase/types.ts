@@ -366,9 +366,54 @@ export type Database = {
         }
         Relationships: []
       }
+      units_public_discovery: {
+        Row: {
+          available_count: number | null
+          facility_id: string | null
+          max_price_pence: number | null
+          min_price_pence: number | null
+          size_category: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "units_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "units_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "units_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities_safe_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          max_attempts?: number
+          operation_type: string
+          user_id: string
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_role_safe: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
