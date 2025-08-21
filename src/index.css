@@ -8,51 +8,56 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* SaaS Platform Design System */
+    /* Clean Minimal Design System */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 220 9% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 9% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 9% 10%;
 
-    /* Professional SaaS Blue */
-    --primary: 217 91% 60%;
+    /* Vibrant Orange Primary */
+    --primary: 25 95% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 91% 55%;
+    --primary-hover: 25 95% 48%;
+    --primary-light: 25 95% 93%;
 
     /* Clean Secondary */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 9% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 5% 46%;
 
-    /* Success Accent */
-    --accent: 142 76% 36%;
+    /* Orange Accent Variations */
+    --accent: 25 95% 53%;
     --accent-foreground: 0 0% 100%;
+    --accent-light: 25 95% 93%;
 
-    /* Warning & Destructive */
+    /* Status Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 60%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 25 95% 53%;
 
-    /* SaaS Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 65%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 40% 99%) 100%);
+    /* Orange Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(25 95% 48%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(33 100% 60%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(25 95% 98%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 99%) 100%);
 
-    /* Professional Shadows */
-    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-elevated: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
-    --shadow-glow: 0 0 0 1px hsl(217 91% 60% / 0.1), 0 0 20px hsl(217 91% 60% / 0.15);
+    /* Clean Shadows */
+    --shadow-card: 0 1px 3px 0 hsl(220 9% 10% / 0.06), 0 1px 2px -1px hsl(220 9% 10% / 0.06);
+    --shadow-elevated: 0 4px 6px -1px hsl(220 9% 10% / 0.08), 0 2px 4px -2px hsl(220 9% 10% / 0.08);
+    --shadow-glow: 0 0 0 1px hsl(25 95% 53% / 0.1), 0 8px 25px -5px hsl(25 95% 53% / 0.15);
 
     /* Animation Timing */
     --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);

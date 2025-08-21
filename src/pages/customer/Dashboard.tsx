@@ -42,67 +42,84 @@ const CustomerDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Welcome back!</h1>
-          <p className="text-muted-foreground">
-            Manage your storage units and bookings
-          </p>
+    <div className="min-h-screen bg-gradient-subtle">
+      <div className="container mx-auto px-6 py-12">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-12">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold">Welcome back!</h1>
+            <p className="text-muted-foreground text-lg">
+              Manage your storage units and bookings
+            </p>
+          </div>
+          <Button variant="gradient" size="lg" asChild>
+            <Link to="/">
+              <Plus className="mr-2 h-5 w-5" />
+              Find More Storage
+            </Link>
+          </Button>
         </div>
-        <Button asChild>
-          <Link to="/">
-            <Plus className="mr-2 h-4 w-4" />
-            Find More Storage
-          </Link>
-        </Button>
-      </div>
 
-      {/* Stats */}
-      <div className="grid md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Units</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeBookings.length}</div>
-          </CardContent>
-        </Card>
+        {/* Stats Overview */}
+        <div className="grid md:grid-cols-4 gap-8 mb-12">
+          <Card className="bg-gradient-card shadow-card hover:shadow-elevated transition-all duration-300 border-0">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Active Units
+              </CardTitle>
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-3xl font-bold">{activeBookings.length}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Spend</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalMonthlySpend)}</div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-card shadow-card hover:shadow-elevated transition-all duration-300 border-0">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Monthly Spend
+              </CardTitle>
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-3xl font-bold">{formatCurrency(totalMonthlySpend)}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{bookings?.length || 0}</div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-card shadow-card hover:shadow-elevated transition-all duration-300 border-0">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Total Bookings
+              </CardTitle>
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Calendar className="h-5 w-5 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-3xl font-bold">{bookings?.length || 0}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Facilities</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {new Set(bookings?.map(b => b.unit?.facility_id)).size || 0}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card className="bg-gradient-card shadow-card hover:shadow-elevated transition-all duration-300 border-0">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Facilities
+              </CardTitle>
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Building className="h-5 w-5 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-3xl font-bold">
+                {new Set(bookings?.map(b => b.unit?.facility_id)).size || 0}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
       {/* Active Bookings */}
       <div>
@@ -180,6 +197,7 @@ const CustomerDashboard = () => {
             </Button>
           </Card>
         )}
+      </div>
       </div>
     </div>
   )

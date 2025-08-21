@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button"
-import { HeroSection } from "@/components/ui/hero-section"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap, LogIn, LogOut, Settings, Search, MapPin, Clock } from "lucide-react"
+import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap, Search, MapPin, Clock, Star, CheckCircle, Settings } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserRole } from "@/hooks/useUserRole"
 import { usePublicFacilities } from "@/hooks/usePublicFacilities"
+import { Navigation } from "@/components/layout/Navigation"
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -36,73 +36,77 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-subtle">
+      <Navigation />
+      
       {/* Hero Section */}
-      <HeroSection>
-        <div className="space-y-6 animate-fade-in">
-          <h1 className="text-5xl font-bold tracking-tight">
-            BigLittleBox
-          </h1>
-          <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            The complete marketplace for storage. Find storage units near you or manage your storage business with enterprise-grade tools.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 mt-8">
-            <Button 
-              size="lg" 
-              className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-              onClick={handleGetStarted}
-              disabled={roleLoading}
-            >
-              {roleLoading ? "Loading..." : user ? "Go to Dashboard" : "Get Started"}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+      <section className="relative overflow-hidden bg-gradient-hero py-24 px-6">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
+        <div className="relative container mx-auto max-w-6xl text-center">
+          <div className="space-y-8 animate-fade-in">
+            <div className="space-y-4">
+              <h1 className="text-6xl font-bold tracking-tight text-white">
+                Storage Made <span className="text-orange-200">Simple</span>
+              </h1>
+              <p className="text-xl text-orange-100 max-w-3xl mx-auto leading-relaxed">
+                The modern marketplace connecting storage seekers with trusted facilities. Find your perfect storage space or grow your storage business.
+              </p>
+            </div>
             
-            {!user && (
+            <div className="flex flex-wrap justify-center gap-4">
               <Button 
                 size="lg" 
-                variant="outline" 
-                className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
-                onClick={handleCustomerSignup}
+                variant="gradient"
+                onClick={handleGetStarted}
+                disabled={roleLoading}
+                className="bg-white text-primary hover:bg-orange-50 shadow-lg hover:shadow-xl"
               >
-                <Search className="mr-2 h-4 w-4" />
-                Find Storage
+                {roleLoading ? "Loading..." : user ? "Go to Dashboard" : "Get Started"}
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            )}
+              
+              {!user && (
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
+                  onClick={handleCustomerSignup}
+                >
+                  <Search className="mr-2 h-5 w-5" />
+                  Find Storage
+                </Button>
+              )}
+            </div>
             
-            {user ? (
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
-                onClick={signOut}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </Button>
-            ) : (
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
-                asChild
-              >
-                <Link to="/auth">
-                  <LogIn className="mr-2 h-4 w-4" />
-                  Sign In
-                </Link>
-              </Button>
-            )}
+            <div className="flex items-center justify-center gap-8 pt-8 text-orange-200">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" />
+                <span>Instant Booking</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" />
+                <span>Secure & Trusted</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" />
+                <span>24/7 Support</span>
+              </div>
+            </div>
           </div>
         </div>
-      </HeroSection>
+      </section>
 
       {/* Featured Facilities */}
-      <section className="py-16 px-6 bg-muted/30">
+      <section className="py-20 px-6">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Find Storage Near You</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Browse available storage units from trusted facilities in your area
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-primary-light px-4 py-2 rounded-full text-primary font-medium text-sm mb-6">
+              <Star className="h-4 w-4" />
+              Featured Storage Facilities
+            </div>
+            <h2 className="text-4xl font-bold mb-6">Find Storage Near You</h2>
+            <p className="text-muted-foreground text-xl max-w-3xl mx-auto leading-relaxed">
+              Discover secure, affordable storage units from verified facilities in your area
             </p>
           </div>
           
@@ -174,74 +178,90 @@ const Index = () => {
       </section>
 
       {/* Two-Sided Platform */}
-      <section className="py-16 px-6">
+      <section className="py-20 px-6 bg-gradient-subtle">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Built for Everyone</h2>
-            <p className="text-muted-foreground text-lg">
-              Whether you need storage or provide it, BigLittleBox has you covered
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-primary-light px-4 py-2 rounded-full text-primary font-medium text-sm mb-6">
+              <Users className="h-4 w-4" />
+              Built for Everyone
+            </div>
+            <h2 className="text-4xl font-bold mb-6">Whether You Need Storage or Provide It</h2>
+            <p className="text-muted-foreground text-xl max-w-3xl mx-auto leading-relaxed">
+              BigLittleBox serves both sides of the storage market with tailored solutions
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-12">
             {/* For Customers */}
-            <Card className="p-8 text-center space-y-6 bg-gradient-card">
-              <div className="mx-auto p-4 bg-primary/10 rounded-full w-fit">
-                <Users className="h-12 w-12 text-primary" />
+            <Card className="group p-10 text-center space-y-8 bg-gradient-card shadow-card hover:shadow-glow transition-all duration-500 border-0 hover:scale-[1.02]">
+              <div className="mx-auto p-6 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 transition-colors">
+                <Users className="h-16 w-16 text-primary" />
               </div>
-              <div>
-                <h3 className="text-2xl font-semibold mb-3">For Customers</h3>
-                <p className="text-muted-foreground mb-6">
+              <div className="space-y-6">
+                <h3 className="text-3xl font-bold">For Customers</h3>
+                <p className="text-muted-foreground text-lg leading-relaxed">
                   Find and book secure storage units in your area. Manage your bookings, payments, and access everything from your personal dashboard.
                 </p>
-                <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-                  <li className="flex items-center gap-2">
-                    <Search className="h-4 w-4 text-primary" />
-                    Browse available units
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    24/7 online booking
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-primary" />
-                    Secure payment processing
-                  </li>
-                </ul>
+                <div className="grid gap-4 text-left">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Search className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="font-medium">Browse available units instantly</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Clock className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="font-medium">24/7 online booking system</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Shield className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="font-medium">Secure payment processing</span>
+                  </div>
+                </div>
               </div>
-              <Button onClick={handleCustomerSignup} size="lg" className="w-full">
+              <Button onClick={handleCustomerSignup} size="lg" className="w-full" variant="gradient">
                 Find Storage
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Card>
 
             {/* For Providers */}
-            <Card className="p-8 text-center space-y-6 bg-gradient-card">
-              <div className="mx-auto p-4 bg-accent/10 rounded-full w-fit">
-                <Building className="h-12 w-12 text-accent" />
+            <Card className="group p-10 text-center space-y-8 bg-gradient-card shadow-card hover:shadow-glow transition-all duration-500 border-0 hover:scale-[1.02]">
+              <div className="mx-auto p-6 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 transition-colors">
+                <Building className="h-16 w-16 text-primary" />
               </div>
-              <div>
-                <h3 className="text-2xl font-semibold mb-3">For Storage Providers</h3>
-                <p className="text-muted-foreground mb-6">
+              <div className="space-y-6">
+                <h3 className="text-3xl font-bold">For Storage Providers</h3>
+                <p className="text-muted-foreground text-lg leading-relaxed">
                   Grow your storage business with powerful management tools. Handle units, customers, billing, and analytics from one platform.
                 </p>
-                <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-                  <li className="flex items-center gap-2">
-                    <UserCheck className="h-4 w-4 text-accent" />
-                    Complete unit management
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-accent" />
-                    Automated billing
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-accent" />
-                    Business analytics
-                  </li>
-                </ul>
+                <div className="grid gap-4 text-left">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <UserCheck className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="font-medium">Complete unit management</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Zap className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="font-medium">Automated billing & payments</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="font-medium">Advanced business analytics</span>
+                  </div>
+                </div>
               </div>
               <Button onClick={handleProviderAccess} size="lg" className="w-full" variant="outline">
-                <Settings className="mr-2 h-4 w-4" />
+                <Settings className="mr-2 h-5 w-5" />
                 Become a Provider
               </Button>
             </Card>
@@ -250,40 +270,44 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-6 bg-muted/30">
+      <section className="py-20 px-6">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Enterprise-Grade Features</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Built for storage businesses of all sizes, from single locations to enterprise chains
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-primary-light px-4 py-2 rounded-full text-primary font-medium text-sm mb-6">
+              <BarChart3 className="h-4 w-4" />
+              Enterprise Features
+            </div>
+            <h2 className="text-4xl font-bold mb-6">Built for Scale</h2>
+            <p className="text-muted-foreground text-xl max-w-3xl mx-auto leading-relaxed">
+              Enterprise-grade features designed for storage businesses of all sizes
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center space-y-4">
-              <div className="mx-auto p-3 bg-primary/10 rounded-lg w-fit">
-                <BarChart3 className="h-8 w-8 text-primary" />
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="text-center space-y-6 group">
+              <div className="mx-auto p-6 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 transition-colors">
+                <BarChart3 className="h-12 w-12 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Analytics & Reporting</h3>
-              <p className="text-muted-foreground">
-                Real-time insights into occupancy, revenue, and business performance
+              <h3 className="text-2xl font-bold">Analytics & Reporting</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Real-time insights into occupancy, revenue, and business performance with detailed reporting
               </p>
             </div>
-            <div className="text-center space-y-4">
-              <div className="mx-auto p-3 bg-primary/10 rounded-lg w-fit">
-                <Shield className="h-8 w-8 text-primary" />
+            <div className="text-center space-y-6 group">
+              <div className="mx-auto p-6 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 transition-colors">
+                <Shield className="h-12 w-12 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Secure & Compliant</h3>
-              <p className="text-muted-foreground">
-                Enterprise security with document management and audit trails
+              <h3 className="text-2xl font-bold">Secure & Compliant</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Enterprise security with document management, audit trails, and compliance features
               </p>
             </div>
-            <div className="text-center space-y-4">
-              <div className="mx-auto p-3 bg-primary/10 rounded-lg w-fit">
-                <Zap className="h-8 w-8 text-primary" />
+            <div className="text-center space-y-6 group">
+              <div className="mx-auto p-6 bg-primary/10 rounded-2xl w-fit group-hover:bg-primary/20 transition-colors">
+                <Zap className="h-12 w-12 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Automated Billing</h3>
-              <p className="text-muted-foreground">
-                Integrated Stripe payments with automated invoicing and late fees
+              <h3 className="text-2xl font-bold">Automated Billing</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Integrated Stripe payments with automated invoicing, late fees, and financial management
               </p>
             </div>
           </div>
@@ -291,20 +315,58 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted/50 py-8 px-6 border-t">
+      <footer className="bg-foreground text-background py-16 px-6">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <h3 className="font-bold text-lg">BigLittleBox</h3>
-              <p className="text-sm text-muted-foreground">
-                The complete storage marketplace
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+                  <Building className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-bold">BigLittleBox</span>
+              </div>
+              <p className="text-background/70 leading-relaxed">
+                The modern storage marketplace connecting customers with trusted storage providers.
               </p>
             </div>
-            <div className="flex space-x-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-primary transition-colors">Documentation</a>
-              <a href="#" className="hover:text-primary transition-colors">Support</a>
-              <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-              <a href="#" className="hover:text-primary transition-colors">Terms</a>
+            
+            <div>
+              <h4 className="font-semibold mb-4">For Customers</h4>
+              <ul className="space-y-2 text-background/70">
+                <li><a href="#" className="hover:text-primary transition-colors">Find Storage</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">How It Works</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Support</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">For Providers</h4>
+              <ul className="space-y-2 text-background/70">
+                <li><a href="#" className="hover:text-primary transition-colors">List Your Facility</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Features</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Pricing Plans</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Resources</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-background/70">
+                <li><a href="#" className="hover:text-primary transition-colors">About Us</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-background/20 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-background/60 text-sm mb-4 md:mb-0">
+              © 2024 BigLittleBox. All rights reserved.
+            </p>
+            <div className="flex items-center space-x-6">
+              <span className="text-background/60 text-sm">Made with ❤️ for storage businesses</span>
             </div>
           </div>
         </div>
