@@ -25,12 +25,24 @@ export const detectFacilityFromUrl = () => {
   const hostname = window.location.hostname;
   
   // Check if we're on a subdomain (not the main domain)
-  const isSubdomain = hostname !== 'localhost' && 
-                      hostname !== '127.0.0.1' && 
-                      !hostname.includes('lovable.app') &&
-                      hostname.includes('.biglittlebox.io');
+  // In development: allow testing with any subdomain
+  // In production: look for .biglittlebox.io
+  let isSubdomain = false;
+  let subdomain = null;
   
-  const subdomain = isSubdomain ? hostname.split('.')[0] : null;
+  if (hostname.includes('lovable.app') || hostname === 'localhost' || hostname === '127.0.0.1') {
+    // Development/testing environment - check for facility parameter in URL for testing
+    const urlParams = new URLSearchParams(window.location.search);
+    const facilityParam = urlParams.get('facility');
+    if (facilityParam) {
+      isSubdomain = true;
+      subdomain = facilityParam;
+    }
+  } else if (hostname.includes('.biglittlebox.io')) {
+    // Production environment - check for actual subdomain
+    isSubdomain = true;
+    subdomain = hostname.split('.')[0];
+  }
   
   return { isSubdomain, subdomain };
 };

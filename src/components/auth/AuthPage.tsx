@@ -124,14 +124,15 @@ const AuthPage = () => {
   }
 
   const getTitle = () => {
+    if (isFacilityCustomer) return "Join This Storage Facility"
     if (authType === 'provider') return "Provider Authentication"
     if (authType === 'customer') return "Customer Authentication"
     return "Sign in to BigLittleBox"
   }
 
   const getDescription = () => {
-    if (authType === 'provider') return "Join as a storage provider to manage your facilities and grow your business"
     if (isFacilityCustomer) return "Sign up to book storage units at this facility"
+    if (authType === 'provider') return "Join as a storage provider to manage your facilities and grow your business"
     if (authType === 'customer') return "Sign up to book storage units and manage your storage needs"
     return "Access your account to manage storage"
   }
@@ -262,7 +263,7 @@ const AuthPage = () => {
               </TabsContent>
             </Tabs>
 
-            {!authType && (
+            {!authType && !isFacilityCustomer && (
               <>
                 <Separator className="my-6" />
                 
@@ -282,6 +283,15 @@ const AuthPage = () => {
                       <Link to="/auth?type=provider">
                         <Building className="mr-2 h-4 w-4" />
                         Provider
+                      </Link>
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg text-center">
+                    <p className="text-xs text-muted-foreground mb-2">For testing facility customer signup:</p>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to="/auth?type=customer&facility=demo-facility&signup=true">
+                        Test Facility Customer Signup
                       </Link>
                     </Button>
                   </div>
