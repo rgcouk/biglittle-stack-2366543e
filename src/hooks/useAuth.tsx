@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName?: string, role?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, displayName?: string, role?: string, facilityId?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, displayName?: string, role?: string) => {
+  const signUp = async (email: string, password: string, displayName?: string, role?: string, facilityId?: string) => {
     try {
       // Input validation
       if (!email || !password) {
@@ -75,7 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           emailRedirectTo: redirectUrl,
           data: {
             display_name: sanitizedDisplayName,
-            role: role || 'customer'
+            role: role || 'customer',
+            facility_id: facilityId
           }
         }
       });

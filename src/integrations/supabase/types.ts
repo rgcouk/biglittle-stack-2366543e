@@ -69,6 +69,7 @@ export type Database = {
           phone: string | null
           postcode: string
           provider_id: string
+          subdomain: string | null
           updated_at: string
         }
         Insert: {
@@ -81,6 +82,7 @@ export type Database = {
           phone?: string | null
           postcode: string
           provider_id: string
+          subdomain?: string | null
           updated_at?: string
         }
         Update: {
@@ -93,6 +95,7 @@ export type Database = {
           phone?: string | null
           postcode?: string
           provider_id?: string
+          subdomain?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -181,6 +184,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          facility_id: string | null
           id: string
           role: string
           updated_at: string
@@ -190,6 +194,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          facility_id?: string | null
           id?: string
           role?: string
           updated_at?: string
@@ -199,12 +204,35 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          facility_id?: string | null
           id?: string
           role?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities_safe_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       units: {
         Row: {
@@ -342,6 +370,10 @@ export type Database = {
     Functions: {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_facility_by_subdomain: {
+        Args: { subdomain_input: string }
         Returns: string
       }
     }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useNavigate, useSearchParams, Link } from "react-router-dom"
+import { useNavigate, useSearchParams, Link, useLocation } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserRole } from "@/hooks/useUserRole"
+import { useFacilityContext } from "@/hooks/useFacilityContext"
 import { ArrowLeft, Building, Users, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
@@ -22,11 +23,20 @@ const AuthPage = () => {
   
   const { user, signUp, signIn } = useAuth()
   const { data: userRole } = useUserRole()
+  const { facilityId, isSubdomain } = useFacilityContext()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const location = useLocation()
   
+  // Extract authType, facility, and redirect from query parameters
   const authType = searchParams.get("type") // 'provider' or 'customer'
+  const facilityParam = searchParams.get('facility')
+  const isSignup = searchParams.get('signup') === 'true'
   const redirectPath = searchParams.get("redirect")
+
+  const isProviderAuth = authType === 'provider'
+  const isCustomerAuth = authType === 'customer'
+  const isFacilityCustomer = isCustomerAuth && (facilityParam || isSubdomain)
 
   useEffect(() => {
     if (user) {
@@ -43,11 +53,11 @@ const AuthPage = () => {
   }, [user, userRole, navigate, redirectPath])
 
   useEffect(() => {
-    // If authType is specified, default to signup
-    if (authType) {
+    // If authType is specified or signup is requested, default to signup
+    if (authType || isSignup) {
       setActiveTab("signup")
     }
-  }, [authType])
+  }, [authType, isSignup])
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,7 +65,15 @@ const AuthPage = () => {
     
     try {
       const role = authType || 'customer' // Default to customer if no type specified
-      const { error } = await signUp(email, password, displayName, role)
+      const targetFacilityId = facilityParam || facilityId
+      
+      const { error } = await signUp(
+        email, 
+        password, 
+        displayName, 
+        role,
+        isFacilityCustomer ? targetFacilityId : undefined
+      )
       
       if (error) {
         toast({
@@ -113,6 +131,7 @@ const AuthPage = () => {
 
   const getDescription = () => {
     if (authType === 'provider') return "Join as a storage provider to manage your facilities and grow your business"
+    if (isFacilityCustomer) return "Sign up to book storage units at this facility"
     if (authType === 'customer') return "Sign up to book storage units and manage your storage needs"
     return "Access your account to manage storage"
   }
@@ -185,13 +204,19 @@ const AuthPage = () => {
               </TabsContent>
               
               <TabsContent value="signup" className="space-y-4 mt-6">
-                {authType && (
+                {(authType || isFacilityCustomer) && (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      You're signing up as a <strong>{authType}</strong>. 
-                      {authType === 'provider' && " You'll be able to list and manage storage facilities."}
-                      {authType === 'customer' && " You'll be able to browse and book storage units."}
+                      {isProviderAuth && (
+                        <>You're signing up as a <strong>provider</strong>. You'll be able to list and manage storage facilities.</>
+                      )}
+                      {isFacilityCustomer && (
+                        <>You're signing up as a <strong>customer</strong> for this facility. You'll be able to book storage units here.</>
+                      )}
+                      {isCustomerAuth && !isFacilityCustomer && (
+                        <>You're signing up as a <strong>customer</strong>. You'll be able to browse and book storage units.</>
+                      )}
                     </AlertDescription>
                   </Alert>
                 )}
