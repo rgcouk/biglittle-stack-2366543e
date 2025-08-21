@@ -1,6 +1,20 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Building, Users, UserCheck, ArrowRight, BarChart3, Shield, Zap, Search, MapPin, Clock, Star, CheckCircle, Settings } from "lucide-react"
+import { 
+  Building, 
+  Users, 
+  UserCheck, 
+  ArrowRight, 
+  BarChart3, 
+  Shield, 
+  Zap, 
+  Search, 
+  MapPin, 
+  Clock, 
+  Star, 
+  CheckCircle, 
+  Settings 
+} from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserRole } from "@/hooks/useUserRole"
