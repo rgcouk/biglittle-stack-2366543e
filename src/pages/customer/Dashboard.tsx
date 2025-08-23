@@ -3,17 +3,54 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useCustomerBookings } from "@/hooks/useBookings"
 import { useAuth } from "@/hooks/useAuth"
-import { Link } from "react-router-dom"
-import { Package, Calendar, DollarSign, MapPin, Plus, Building } from "lucide-react"
+import { useUserRole } from "@/hooks/useUserRole"
+import { Link, useNavigate } from "react-router-dom"
+import { Package, Calendar, DollarSign, MapPin, Plus, Building, RefreshCw, AlertTriangle } from "lucide-react"
 import { formatCurrency } from "@/lib/currency"
 import { format } from "date-fns"
+import { forceAuthRefresh } from "@/utils/authUtils"
+import { useToast } from "@/hooks/use-toast"
+import { useState } from "react"
 
 const CustomerDashboard = () => {
   const { user } = useAuth()
+  const { data: userRole, refetch: refetchRole } = useUserRole()
   const { data: bookings, isLoading } = useCustomerBookings()
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const activeBookings = bookings?.filter(booking => booking.status === 'active') || []
   const totalMonthlySpend = activeBookings.reduce((sum, booking) => sum + booking.monthly_rate_pence, 0)
+
+  const handleRefreshAuth = async () => {
+    setIsRefreshing(true);
+    try {
+      await forceAuthRefresh();
+      await refetchRole();
+      
+      toast({
+        title: "Auth Refreshed",
+        description: "Authentication state has been refreshed"
+      });
+      
+      // Check if role changed and redirect
+      setTimeout(() => {
+        if (userRole === 'provider') {
+          navigate('/provider');
+        }
+      }, 1000);
+      
+    } catch (error) {
+      toast({
+        title: "Refresh Failed",
+        description: "Failed to refresh authentication",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -44,6 +81,40 @@ const CustomerDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <div className="container mx-auto px-6 py-12">
+        {/* Debug Auth Issue Alert */}
+        <Card className="mb-8 bg-yellow-50 border-yellow-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-800">
+              <AlertTriangle className="h-5 w-5" />
+              Debug: Authentication Issue Detected
+            </CardTitle>
+            <CardDescription className="text-yellow-700">
+              You appear to be a provider but are currently in the customer portal.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p><strong>User ID:</strong> {user?.id}</p>
+                <p><strong>Current Role:</strong> {userRole || 'Loading...'}</p>
+              </div>
+              <div>
+                <p><strong>Expected:</strong> Provider Dashboard</p>
+                <p><strong>Current:</strong> Customer Portal</p>
+              </div>
+            </div>
+            <Button
+              onClick={handleRefreshAuth}
+              disabled={isRefreshing}
+              className="w-full"
+              variant="default"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {isRefreshing ? "Refreshing..." : "Fix Authentication & Redirect to Provider Dashboard"}
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-12">
           <div className="space-y-2">
