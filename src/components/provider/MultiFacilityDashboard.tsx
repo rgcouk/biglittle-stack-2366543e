@@ -1,259 +1,300 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Users, DollarSign, BarChart3, TrendingUp, MapPin, Phone, Mail, Loader2 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useMultiFacilityDashboard, useFacilityPerformance } from "@/hooks/useMultiFacility";
-import { formatCurrency } from "@/lib/currency";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Building2, 
+  Users, 
+  DollarSign, 
+  TrendingUp, 
+  MapPin,
+  Plus,
+  Settings,
+  Eye,
+  MoreVertical
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+interface FacilityCardProps {
+  facility: {
+    id: string;
+    name: string;
+    location: string;
+    totalUnits: number;
+    occupiedUnits: number;
+    monthlyRevenue: number;
+    occupancyRate: number;
+    status: 'active' | 'maintenance' | 'inactive';
+  };
+}
+
+function FacilityCard({ facility }: FacilityCardProps) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-emerald-500';
+      case 'maintenance': return 'bg-orange-500';
+      case 'inactive': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="space-y-1">
+          <CardTitle className="text-base font-semibold">{facility.name}</CardTitle>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <MapPin className="h-3 w-3 mr-1" />
+            {facility.location}
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <div className={`h-2 w-2 rounded-full ${getStatusColor(facility.status)}`} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <Eye className="h-4 w-4 mr-2" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="h-4 w-4 mr-2" />
+                Manage
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs text-muted-foreground">Occupancy</p>
+            <p className="text-lg font-bold">{facility.occupancyRate}%</p>
+            <Progress value={facility.occupancyRate} className="mt-1" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Monthly Revenue</p>
+            <p className="text-lg font-bold">£{(facility.monthlyRevenue / 100).toLocaleString()}</p>
+          </div>
+        </div>
+        
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">
+            {facility.occupiedUnits}/{facility.totalUnits} units occupied
+          </span>
+          <Badge variant={facility.occupancyRate > 90 ? "default" : "secondary"}>
+            {facility.status}
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function MultiFacilityDashboard() {
-  const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
-  const { data: facilities = [], isLoading } = useMultiFacilityDashboard();
-  const { data: performanceData } = useFacilityPerformance(selectedFacility || undefined);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // Mock data for facilities
+  const facilities = [
+    {
+      id: '1',
+      name: 'Downtown Storage',
+      location: 'City Centre, London',
+      totalUnits: 250,
+      occupiedUnits: 225,
+      monthlyRevenue: 75000,
+      occupancyRate: 90,
+      status: 'active' as const
+    },
+    {
+      id: '2',
+      name: 'Westside Facility',
+      location: 'West London',
+      totalUnits: 180,
+      occupiedUnits: 162,
+      monthlyRevenue: 54000,
+      occupancyRate: 90,
+      status: 'active' as const
+    },
+    {
+      id: '3',
+      name: 'Industrial Park Storage',
+      location: 'East London',
+      totalUnits: 320,
+      occupiedUnits: 280,
+      monthlyRevenue: 96000,
+      occupancyRate: 87.5,
+      status: 'maintenance' as const
+    }
+  ];
 
-  // Calculate overall totals
-  const overallStats = facilities.reduce((totals, facility) => ({
-    totalUnits: totals.totalUnits + (facility.stats?.totalUnits || 0),
-    occupiedUnits: totals.occupiedUnits + (facility.stats?.occupiedUnits || 0),
-    monthlyRevenue: totals.monthlyRevenue + (facility.stats?.monthlyRevenue || 0),
-    activeCustomers: totals.activeCustomers + (facility.stats?.activeCustomers || 0),
-  }), { totalUnits: 0, occupiedUnits: 0, monthlyRevenue: 0, activeCustomers: 0 });
+  const totalStats = {
+    totalFacilities: facilities.length,
+    totalUnits: facilities.reduce((sum, f) => sum + f.totalUnits, 0),
+    totalOccupied: facilities.reduce((sum, f) => sum + f.occupiedUnits, 0),
+    totalRevenue: facilities.reduce((sum, f) => sum + f.monthlyRevenue, 0),
+  };
 
-  const overallOccupancyRate = overallStats.totalUnits > 0 
-    ? Math.round((overallStats.occupiedUnits / overallStats.totalUnits) * 100) 
-    : 0;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading multi-facility dashboard...</span>
-      </div>
-    );
-  }
-
-  if (facilities.length <= 1) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Multi-Facility Management</CardTitle>
-          <CardDescription>
-            You need multiple facilities to access advanced multi-facility features.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button>Add New Facility</Button>
-        </CardContent>
-      </Card>
-    );
-  }
+  const overallOccupancy = (totalStats.totalOccupied / totalStats.totalUnits) * 100;
 
   return (
     <div className="space-y-6">
-      {/* Overall Performance Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Portfolio Overview ({facilities.length} Facilities)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold">{overallStats.totalUnits}</div>
-              <p className="text-sm text-muted-foreground">Total Units</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{overallOccupancyRate}%</div>
-              <p className="text-sm text-muted-foreground">Avg Occupancy</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{formatCurrency(overallStats.monthlyRevenue)}</div>
-              <p className="text-sm text-muted-foreground">Total Revenue/mo</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{overallStats.activeCustomers}</div>
-              <p className="text-sm text-muted-foreground">Active Customers</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Multi-Facility Overview</h1>
+          <p className="text-muted-foreground">Manage all your storage facilities from one place</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <Select value={viewMode} onValueChange={(value: 'grid' | 'list') => setViewMode(value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="grid">Grid View</SelectItem>
+              <SelectItem value="list">List View</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Facility
+          </Button>
+        </div>
+      </div>
 
-      <Tabs defaultValue="facilities" className="space-y-4">
+      {/* Overall Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Facilities</CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalStats.totalFacilities}</div>
+            <p className="text-xs text-muted-foreground">Active locations</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Units</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalStats.totalUnits}</div>
+            <p className="text-xs text-muted-foreground">
+              {totalStats.totalOccupied} occupied
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Overall Occupancy</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overallOccupancy.toFixed(1)}%</div>
+            <Progress value={overallOccupancy} className="mt-2" />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">£{(totalStats.totalRevenue / 100).toLocaleString()}</div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <TrendingUp className="h-3 w-3 mr-1 text-emerald-500" />
+              +8.2% from last month
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="facilities">Facility Performance</TabsTrigger>
-          <TabsTrigger value="comparison">Comparative Analysis</TabsTrigger>
-          <TabsTrigger value="trends">Performance Trends</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="alerts">Alerts</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="facilities" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <TabsContent value="overview" className="space-y-4">
+          <div className={`grid gap-4 ${viewMode === 'grid' ? 'md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
             {facilities.map((facility) => (
-              <Card key={facility.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{facility.name}</CardTitle>
-                      <CardDescription className="flex items-center gap-1 mt-1">
-                        <MapPin className="h-3 w-3" />
-                        {facility.address}
-                      </CardDescription>
-                    </div>
-                    <Badge variant={
-                      (facility.stats?.occupancyRate || 0) >= 80 ? "default" :
-                      (facility.stats?.occupancyRate || 0) >= 60 ? "secondary" : "outline"
-                    }>
-                      {facility.stats?.occupancyRate || 0}% Occupied
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{facility.stats?.totalUnits || 0}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Total Units</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{facility.stats?.activeCustomers || 0}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Customers</p>
-                    </div>
-                  </div>
-
-                  <div className="text-center mb-4">
-                    <div className="text-xl font-bold text-primary">
-                      {formatCurrency(facility.stats?.monthlyRevenue || 0)}/mo
-                    </div>
-                    <p className="text-xs text-muted-foreground">Monthly Revenue</p>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="text-center">
-                      <div className="font-medium text-green-600">
-                        {facility.stats?.availableUnits || 0}
-                      </div>
-                      <div className="text-muted-foreground">Available</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium text-blue-600">
-                        {facility.stats?.occupiedUnits || 0}
-                      </div>
-                      <div className="text-muted-foreground">Occupied</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium text-yellow-600">
-                        {facility.stats?.maintenanceUnits || 0}
-                      </div>
-                      <div className="text-muted-foreground">Maintenance</div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 mt-4">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => setSelectedFacility(facility.id)}
-                    >
-                      View Details
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Phone className="h-3 w-3" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Mail className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <FacilityCard key={facility.id} facility={facility} />
             ))}
           </div>
         </TabsContent>
-
-        <TabsContent value="comparison" className="space-y-4">
+        
+        <TabsContent value="performance" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Facility Comparison</CardTitle>
-              <CardDescription>Compare key metrics across all facilities</CardDescription>
+              <CardTitle>Facility Performance Comparison</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={facilities.map(f => ({ 
-                    name: f.name.substring(0, 15) + (f.name.length > 15 ? '...' : ''),
-                    revenue: f.stats?.monthlyRevenue || 0,
-                    occupancy: f.stats?.occupancyRate || 0,
-                    customers: f.stats?.activeCustomers || 0,
-                  }))}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis yAxisId="left" orientation="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip 
-                      formatter={(value, name) => {
-                        if (name === 'revenue') return [formatCurrency(value as number), 'Monthly Revenue'];
-                        if (name === 'occupancy') return [`${value}%`, 'Occupancy Rate'];
-                        return [value, name];
-                      }}
-                    />
-                    <Bar yAxisId="left" dataKey="revenue" fill="#3b82f6" name="revenue" />
-                    <Bar yAxisId="right" dataKey="occupancy" fill="#22c55e" name="occupancy" />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="space-y-4">
+                {facilities.map((facility) => (
+                  <div key={facility.id} className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium leading-none">{facility.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        £{(facility.monthlyRevenue / 100).toLocaleString()} monthly
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Progress value={facility.occupancyRate} className="w-24" />
+                      <Badge variant="secondary">{facility.occupancyRate}%</Badge>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="trends" className="space-y-4">
+        
+        <TabsContent value="alerts" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Performance Trends</CardTitle>
-              <CardDescription>
-                <div className="flex items-center gap-2">
-                  <span>Select a facility to view detailed performance trends</span>
-                  <Select value={selectedFacility || ""} onValueChange={setSelectedFacility}>
-                    <SelectTrigger className="w-64">
-                      <SelectValue placeholder="Choose facility" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {facilities.map((facility) => (
-                        <SelectItem key={facility.id} value={facility.id}>
-                          {facility.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardDescription>
+              <CardTitle>Facility Alerts & Issues</CardTitle>
             </CardHeader>
             <CardContent>
-              {selectedFacility && performanceData ? (
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [formatCurrency(value as number), 'Revenue']} />
-                      <Bar dataKey="revenue" fill="#3b82f6" />
-                    </BarChart>
-                  </ResponsiveContainer>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className="h-2 w-2 bg-orange-500 rounded-full" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Industrial Park Storage - Maintenance Required</p>
+                    <p className="text-xs text-muted-foreground">HVAC system needs attention in Block C</p>
+                  </div>
+                  <Badge variant="outline">Medium</Badge>
                 </div>
-              ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                  Select a facility to view performance trends
+                
+                <div className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className="h-2 w-2 bg-emerald-500 rounded-full" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Downtown Storage - High Occupancy</p>
+                    <p className="text-xs text-muted-foreground">Facility at 90% capacity, consider waitlist</p>
+                  </div>
+                  <Badge variant="outline">Low</Badge>
                 </div>
-              )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
