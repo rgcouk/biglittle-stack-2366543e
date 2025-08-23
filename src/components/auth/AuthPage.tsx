@@ -64,7 +64,8 @@ const AuthPage = () => {
     setIsLoading(true)
     
     try {
-      const role = authType || 'customer' // Default to customer if no type specified
+      // Determine role based on context: customers only on subdomains, providers on main domain
+      const role = isSubdomain ? 'customer' : 'provider'
       const targetFacilityId = facilityParam || facilityId
       
       const { error } = await signUp(
@@ -72,7 +73,7 @@ const AuthPage = () => {
         password, 
         displayName, 
         role,
-        isFacilityCustomer ? targetFacilityId : undefined
+        isSubdomain ? targetFacilityId : undefined
       )
       
       if (error) {
@@ -125,16 +126,14 @@ const AuthPage = () => {
 
   const getTitle = () => {
     if (isFacilityCustomer) return "Join This Storage Facility"
-    if (authType === 'provider') return "Provider Authentication"
-    if (authType === 'customer') return "Customer Authentication"
-    return "Sign in to BigLittleBox"
+    if (isSubdomain && !authType) return "Customer Access"
+    return "Provider Authentication"
   }
 
   const getDescription = () => {
     if (isFacilityCustomer) return "Sign up to book storage units at this facility"
-    if (authType === 'provider') return "Join as a storage provider to manage your facilities and grow your business"
-    if (authType === 'customer') return "Sign up to book storage units and manage your storage needs"
-    return "Access your account to manage storage"
+    if (isSubdomain && !authType) return "Sign in to manage your storage bookings at this facility"
+    return "Join as a storage provider to manage your facilities and grow your business"
   }
 
   return (
@@ -151,15 +150,15 @@ const AuthPage = () => {
 
         <Card className="shadow-elevated">
           <CardHeader className="text-center space-y-4">
-            {authType === 'provider' ? (
-              <div className="mx-auto p-3 bg-accent/10 rounded-full w-fit">
-                <Building className="h-8 w-8 text-accent" />
-              </div>
-            ) : authType === 'customer' ? (
+            {isSubdomain ? (
               <div className="mx-auto p-3 bg-primary/10 rounded-full w-fit">
                 <Users className="h-8 w-8 text-primary" />
               </div>
-            ) : null}
+            ) : (
+              <div className="mx-auto p-3 bg-accent/10 rounded-full w-fit">
+                <Building className="h-8 w-8 text-accent" />
+              </div>
+            )}
             
             <div>
               <CardTitle className="text-2xl">{getTitle()}</CardTitle>
@@ -205,22 +204,16 @@ const AuthPage = () => {
               </TabsContent>
               
               <TabsContent value="signup" className="space-y-4 mt-6">
-                {(authType || isFacilityCustomer) && (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {isProviderAuth && (
-                        <>You're signing up as a <strong>provider</strong>. You'll be able to list and manage storage facilities.</>
-                      )}
-                      {isFacilityCustomer && (
-                        <>You're signing up as a <strong>customer</strong> for this facility. You'll be able to book storage units here.</>
-                      )}
-                      {isCustomerAuth && !isFacilityCustomer && (
-                        <>You're signing up as a <strong>customer</strong>. You'll be able to browse and book storage units.</>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                )}
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {isSubdomain ? (
+                      <>You're signing up as a <strong>customer</strong> for this facility. You'll be able to book storage units here.</>
+                    ) : (
+                      <>You're signing up as a <strong>provider</strong>. You'll be able to list and manage storage facilities.</>
+                    )}
+                  </AlertDescription>
+                </Alert>
                 
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
@@ -257,47 +250,12 @@ const AuthPage = () => {
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : `Sign Up as ${authType || 'Customer'}`}
+                    {isLoading ? "Creating account..." : `Sign Up as ${isSubdomain ? 'Customer' : 'Provider'}`}
                   </Button>
                 </form>
               </TabsContent>
             </Tabs>
 
-            {!authType && !isFacilityCustomer && (
-              <>
-                <Separator className="my-6" />
-                
-                <div className="space-y-3">
-                  <p className="text-sm text-center text-muted-foreground">
-                    Looking for a specific account type?
-                  </p>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" asChild size="sm">
-                      <Link to="/auth?type=customer">
-                        <Users className="mr-2 h-4 w-4" />
-                        Customer
-                      </Link>
-                    </Button>
-                    <Button variant="outline" asChild size="sm">
-                      <Link to="/auth?type=provider">
-                        <Building className="mr-2 h-4 w-4" />
-                        Provider
-                      </Link>
-                    </Button>
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-muted/50 rounded-lg text-center">
-                    <p className="text-xs text-muted-foreground mb-2">For testing facility customer signup:</p>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to="/auth?type=customer&facility=demo-facility&signup=true">
-                        Test Facility Customer Signup
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
           </CardContent>
         </Card>
       </div>
