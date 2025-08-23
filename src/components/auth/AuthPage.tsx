@@ -41,11 +41,16 @@ const AuthPage = () => {
   useEffect(() => {
     if (user) {
       // User is authenticated, redirect based on role
+      console.log('AuthPage redirect logic - User:', user.id, 'Role:', userRole);
+      
       if (userRole === 'provider') {
+        console.log('Redirecting to provider dashboard');
         navigate("/provider")
       } else if (userRole === 'customer') {
+        console.log('Redirecting to customer dashboard');
         navigate(redirectPath || "/customer")
       } else {
+        console.log('Role not recognized, redirecting to home. Role:', userRole);
         // Default redirect
         navigate("/")
       }
