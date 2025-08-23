@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { FacilityProvider } from "@/components/providers/FacilityProvider";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { PerformanceMonitor } from "@/components/ui/performance-monitor";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AuthPage from "@/components/auth/AuthPage";
 import Index from "./pages/Index";
@@ -26,54 +28,57 @@ import SiteCustomization from "./pages/provider/SiteCustomization";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <FacilityProvider>
-          <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<AuthPage />} />
-            
-            {/* Storage Provider Dashboard Routes */}
-            <Route path="/provider" element={
-              <ProtectedRoute requiredRole="provider">
-                <ProviderLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<ProviderRouter />} />
-              <Route path="units" element={<UnitsManagement />} />
-              <Route path="settings" element={<ProviderSettings />} />
-              <Route path="analytics" element={<ProviderAnalytics />} />
-              <Route path="billing" element={<BillingManagement />} />
-              <Route path="customers" element={<CustomersManagement />} />
-              <Route path="customization" element={<SiteCustomization />} />
-              <Route path="onboarding" element={<FacilityOnboarding />} />
-            </Route>
-            
-            {/* Public Facility Storefronts */}
-            <Route path="/facility/:facilityId" element={<FacilityStorefront />} />
-            
-            {/* Customer Portal Routes */}
-            <Route path="/customer" element={
-              <ProtectedRoute requiredRole="customer">
-                <CustomerLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<CustomerDashboard />} />
-              <Route path="bookings" element={<CustomerBookings />} />
-            </Route>
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-        </FacilityProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <FacilityProvider>
+            <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthPage />} />
+              
+              {/* Storage Provider Dashboard Routes */}
+              <Route path="/provider" element={
+                <ProtectedRoute requiredRole="provider">
+                  <ProviderLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<ProviderRouter />} />
+                <Route path="units" element={<UnitsManagement />} />
+                <Route path="settings" element={<ProviderSettings />} />
+                <Route path="analytics" element={<ProviderAnalytics />} />
+                <Route path="billing" element={<BillingManagement />} />
+                <Route path="customers" element={<CustomersManagement />} />
+                <Route path="customization" element={<SiteCustomization />} />
+                <Route path="onboarding" element={<FacilityOnboarding />} />
+              </Route>
+              
+              {/* Public Facility Storefronts */}
+              <Route path="/facility/:facilityId" element={<FacilityStorefront />} />
+              
+              {/* Customer Portal Routes */}
+              <Route path="/customer" element={
+                <ProtectedRoute requiredRole="customer">
+                  <CustomerLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<CustomerDashboard />} />
+                <Route path="bookings" element={<CustomerBookings />} />
+              </Route>
+              
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+          </FacilityProvider>
+        </BrowserRouter>
+        <PerformanceMonitor />
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
