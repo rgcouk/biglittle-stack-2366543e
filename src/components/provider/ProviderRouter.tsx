@@ -28,9 +28,26 @@ export default function ProviderRouter() {
 
         console.log('Checking facilities for user:', user.id, 'role:', userRole);
         
+        // First get the current user's provider profile ID
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('role', 'provider')
+          .single();
+
+        console.log('Provider profile:', { profile, profileError });
+
+        if (profileError) {
+          console.error('Profile error:', profileError);
+          throw profileError;
+        }
+
+        // Then check for facilities owned by this provider
         const { data: facilities, error: facilityError } = await supabase
           .from('facilities')
           .select('id, name, provider_id')
+          .eq('provider_id', profile.id)
           .limit(10);
 
         console.log('Facilities query result:', { facilities, facilityError });
