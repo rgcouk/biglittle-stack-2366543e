@@ -421,6 +421,14 @@ export type Database = {
         Args: { subdomain_input: string }
         Returns: string
       }
+      get_user_provider_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      user_has_active_booking_in_facility: {
+        Args: { facility_uuid: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
