@@ -101,7 +101,7 @@ export default function FacilityOnboarding() {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .eq('role', 'provider')
         .single();
 
@@ -130,8 +130,11 @@ export default function FacilityOnboarding() {
         description: `Your facility is now available at ${formData.subdomain}.biglittlebox.io`,
       });
 
-      navigate('/provider');
+      // Force a page reload to clear all cached auth state and redirect
+      window.location.href = '/provider';
+      
     } catch (error: any) {
+      console.error('Facility creation error:', error);
       toast({
         title: "Error creating facility",
         description: error.message || "An unexpected error occurred",

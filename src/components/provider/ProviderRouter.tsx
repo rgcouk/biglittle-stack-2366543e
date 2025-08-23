@@ -11,20 +11,25 @@ export default function ProviderRouter() {
   const { data: userRole, isLoading: roleLoading, error: roleError } = useUserRole();
   const [hasFacility, setHasFacility] = useState(false);
   const [isProvider, setIsProvider] = useState<boolean | null>(null);
+  const [checkingFacilities, setCheckingFacilities] = useState(false);
 
   useEffect(() => {
     const checkFacility = async () => {
       // Don't proceed if auth or role is still loading
       if (authLoading || roleLoading) return;
 
+      console.log('ProviderRouter: Checking facilities. User:', user?.id, 'Role:', userRole, 'Role Error:', roleError);
+
       try {
         if (!user || roleError || userRole !== 'provider') {
+          console.log('ProviderRouter: Not a provider or error detected');
           setIsProvider(false);
           setHasFacility(false);
           return;
         }
 
         setIsProvider(true);
+        setCheckingFacilities(true);
 
         // First get the current user's provider profile ID
         const { data: profile, error: profileError } = await supabase
@@ -33,6 +38,8 @@ export default function ProviderRouter() {
           .eq('user_id', user.id)
           .eq('role', 'provider')
           .single();
+
+        console.log('ProviderRouter: Profile lookup result:', { profile, profileError });
 
         if (profileError) {
           throw profileError;
@@ -45,24 +52,46 @@ export default function ProviderRouter() {
           .eq('provider_id', profile.id)
           .limit(10);
 
+        console.log('ProviderRouter: Facilities lookup result:', { facilities, facilityError });
+
         if (facilityError) {
           throw facilityError;
         }
 
         const hasFacilities = !!facilities && facilities.length > 0;
+        console.log('ProviderRouter: Setting hasFacility to:', hasFacilities);
         setHasFacility(hasFacilities);
-      } catch {
+      } catch (error) {
+        console.error('ProviderRouter: Error checking facilities:', error);
         setHasFacility(false);
+      } finally {
+        setCheckingFacilities(false);
       }
     };
 
     checkFacility();
   }, [user, userRole, authLoading, roleLoading, roleError]);
 
-  if (authLoading || roleLoading) {
+  console.log('ProviderRouter render state:', { 
+    authLoading, 
+    roleLoading, 
+    checkingFacilities, 
+    isProvider, 
+    hasFacility, 
+    userRole 
+  });
+
+  if (authLoading || roleLoading || checkingFacilities) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+          <p className="text-muted-foreground">
+            {authLoading && "Loading authentication..."}
+            {roleLoading && "Checking user role..."}
+            {checkingFacilities && "Looking for your facilities..."}
+          </p>
+        </div>
       </div>
     );
   }
