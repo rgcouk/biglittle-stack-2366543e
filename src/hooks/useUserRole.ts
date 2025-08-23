@@ -12,32 +12,30 @@ export function useUserRole() {
 
       console.log('useUserRole: Fetching role for user:', user.id);
 
-      // Try API schema first, then fallback to public
-      const apiClient = (supabase as any).schema('api');
-      const { data, error } = await (apiClient as any).rpc('get_current_user_role');
+      // First try to get from profiles table directly
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
 
-      // Fallback: try public schema if API not found
-      if (error && (error?.message?.includes('Not Found') || (error as any)?.code === '404')) {
-        console.log('useUserRole: API schema failed, trying public schema');
-        const res = await (supabase as any).rpc('get_current_user_role');
-        if (res.error) {
-          console.error('useUserRole: Public schema error:', res.error);
-          throw res.error;
+      if (profileError) {
+        console.error('useUserRole: Profile query error:', profileError);
+        // Fallback to RPC function
+        const { data: rpcData, error: rpcError } = await supabase.rpc('get_current_user_role');
+        if (rpcError) {
+          console.error('useUserRole: RPC error:', rpcError);
+          throw rpcError;
         }
-        console.log('useUserRole: Got role from public schema:', res.data);
-        return res.data || null;
+        console.log('useUserRole: Got role from RPC:', rpcData);
+        return rpcData || 'customer';
       }
 
-      if (error) {
-        console.error('useUserRole: API schema error:', error);
-        throw error;
-      }
-
-      console.log('useUserRole: Got role from API schema:', data);
-      return data || null;
+      console.log('useUserRole: Got role from profiles table:', profile.role);
+      return profile.role || 'customer';
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 1000, // Very short cache to force refresh
     retry: 1,
   });
 }

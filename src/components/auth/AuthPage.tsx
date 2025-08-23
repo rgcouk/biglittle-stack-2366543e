@@ -9,9 +9,10 @@ import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserRole } from "@/hooks/useUserRole"
 import { useFacilityContext } from "@/hooks/useFacilityContext"
-import { ArrowLeft, Building, Users, AlertCircle } from "lucide-react"
+import { ArrowLeft, Building, Users, AlertCircle, RefreshCw } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
+import { forceAuthRefresh } from "@/utils/authUtils"
 
 const AuthPage = () => {
   const [email, setEmail] = useState("")
@@ -22,7 +23,7 @@ const AuthPage = () => {
   const [searchParams] = useSearchParams()
   
   const { user, signUp, signIn } = useAuth()
-  const { data: userRole } = useUserRole()
+  const { data: userRole, refetch: refetchRole } = useUserRole()
   const { facilityId, isSubdomain } = useFacilityContext()
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -38,21 +39,41 @@ const AuthPage = () => {
   const isCustomerAuth = authType === 'customer'
   const isFacilityCustomer = isCustomerAuth && (facilityParam || isSubdomain)
 
+  const handleRefreshAuth = async () => {
+    setIsLoading(true);
+    try {
+      await forceAuthRefresh();
+      await refetchRole();
+      toast({
+        title: "Auth Refreshed",
+        description: "Authentication state has been refreshed"
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh Failed",
+        description: "Failed to refresh authentication",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (user) {
+    if (user && userRole) {
       // User is authenticated, redirect based on role
       console.log('AuthPage redirect logic - User:', user.id, 'Role:', userRole);
       
       if (userRole === 'provider') {
         console.log('Redirecting to provider dashboard');
-        navigate("/provider")
+        navigate("/provider");
       } else if (userRole === 'customer') {
         console.log('Redirecting to customer dashboard');
-        navigate(redirectPath || "/customer")
+        navigate(redirectPath || "/customer");
       } else {
         console.log('Role not recognized, redirecting to home. Role:', userRole);
         // Default redirect
-        navigate("/")
+        navigate("/");
       }
     }
   }, [user, userRole, navigate, redirectPath])
@@ -263,6 +284,30 @@ const AuthPage = () => {
 
           </CardContent>
         </Card>
+
+        {/* Debug section - show current auth state */}
+        {user && (
+          <Card className="mt-4 bg-yellow-50 border-yellow-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Debug: Current Auth State</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xs space-y-2">
+              <p><strong>User ID:</strong> {user.id}</p>
+              <p><strong>Role:</strong> {userRole || 'Loading...'}</p>
+              <p><strong>Current Route:</strong> {location.pathname}</p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRefreshAuth}
+                disabled={isLoading}
+                className="w-full mt-2"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {isLoading ? "Refreshing..." : "Refresh Auth State"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
