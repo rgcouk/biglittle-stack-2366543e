@@ -68,6 +68,8 @@ export default function ProviderRouter() {
     checkFacility();
   }, [user, userRole, authLoading, roleLoading, roleError]);
 
+  console.log('ProviderRouter render - isProvider:', isProvider, 'hasFacility:', hasFacility, 'authLoading:', authLoading, 'roleLoading:', roleLoading);
+
   if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
