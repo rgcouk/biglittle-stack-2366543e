@@ -17,6 +17,10 @@ import FacilityStorefront from "./pages/facility/FacilityStorefront";
 import CustomerLayout from "@/components/customer/CustomerLayout";
 import CustomerDashboard from "./pages/customer/Dashboard";
 import CustomerBookings from "./pages/customer/Bookings";
+import ProviderAnalytics from "./pages/provider/Analytics";
+import BillingManagement from "./pages/provider/BillingManagement";
+import CustomersManagement from "./pages/provider/CustomersManagement";
+import SiteCustomization from "./pages/provider/SiteCustomization";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +55,26 @@ const App = () => (
             <Route path="/provider/onboarding" element={
               <ProtectedRoute requiredRole="provider">
                 <FacilityOnboarding />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/analytics" element={
+              <ProtectedRoute requiredRole="provider">
+                <ProviderAnalytics />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/billing" element={
+              <ProtectedRoute requiredRole="provider">
+                <BillingManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/customers" element={
+              <ProtectedRoute requiredRole="provider">
+                <CustomersManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/customize" element={
+              <ProtectedRoute requiredRole="provider">
+                <SiteCustomization />
               </ProtectedRoute>
             } />
             

@@ -1,15 +1,52 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Building2, Users, DollarSign, BarChart3, Settings, Home } from "lucide-react"
+import { Building2, Users, DollarSign, BarChart3, Settings, Home, Loader2 } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useDashboardStats } from "@/hooks/useDashboardStats"
+import { formatCurrency } from "@/lib/currency"
 
 export default function ProviderDashboard() {
-  const stats = [
-    { title: "Total Units", value: "48", icon: Building2, change: "+2 this month", changeType: "positive" },
-    { title: "Active Customers", value: "36", icon: Users, change: "+5 this week", changeType: "positive" },
-    { title: "Monthly Revenue", value: "£8,950", icon: DollarSign, change: "+15% from last month", changeType: "positive" },
-    { title: "Occupancy Rate", value: "75%", icon: BarChart3, change: "+3% this month", changeType: "positive" },
-  ]
+  const { data: stats, isLoading } = useDashboardStats();
+
+  const dashboardStats = [
+    { 
+      title: "Total Units", 
+      value: stats?.totalUnits?.toString() || "0", 
+      icon: Building2, 
+      change: `${stats?.availableUnits || 0} available`, 
+      changeType: "neutral" as const
+    },
+    { 
+      title: "Active Customers", 
+      value: stats?.activeCustomers?.toString() || "0", 
+      icon: Users, 
+      change: "Active bookings", 
+      changeType: "positive" as const
+    },
+    { 
+      title: "Monthly Revenue", 
+      value: formatCurrency(stats?.monthlyRevenue || 0), 
+      icon: DollarSign, 
+      change: "Current month", 
+      changeType: "positive" as const
+    },
+    { 
+      title: "Occupancy Rate", 
+      value: `${stats?.occupancyRate || 0}%`, 
+      icon: BarChart3, 
+      change: `${stats?.occupiedUnits || 0} of ${stats?.totalUnits || 0} occupied`, 
+      changeType: "positive" as const
+    },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading dashboard...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -38,7 +75,7 @@ export default function ProviderDashboard() {
         {/* Stats Overview */}
         <div className="mb-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat) => (
+            {dashboardStats.map((stat) => (
               <Card key={stat.title} className="bg-gradient-card shadow-card hover:shadow-elevated transition-all duration-300 border-0">
                 <CardHeader className="flex flex-row items-center justify-between pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">

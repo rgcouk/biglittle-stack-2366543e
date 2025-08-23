@@ -1,33 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useCreateUnit } from '@/hooks/useUnits';
-import { useProviderFacilities } from '@/hooks/useFacilities';
+import { useUpdateUnit } from '@/hooks/useUnits';
 import { formatCurrency } from '@/lib/currency';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from "@/integrations/supabase/types";
 
-const createUnitSchema = z.object({
-  facilityId: z.string().min(1, 'Please select a facility'),
+type Unit = Database['public']['Tables']['units']['Row'];
+
+const editUnitSchema = z.object({
   unitNumber: z.string().min(1, 'Unit number is required'),
   sizeCategory: z.enum(['Small', 'Medium', 'Large', 'Extra Large']),
   lengthMetres: z.number().min(0.1, 'Length must be greater than 0'),
   widthMetres: z.number().min(0.1, 'Width must be greater than 0'),
   heightMetres: z.number().min(0.1, 'Height must be greater than 0'),
   monthlyPricePounds: z.number().min(1, 'Price must be greater than 0'),
-  floorLevel: z.number().min(0, 'Floor level must be 0 or greater'),
+  floorLevel: z.number().min(-1, 'Floor level must be -1 or greater'),
+  status: z.enum(['available', 'occupied', 'maintenance']),
   features: z.array(z.string()).optional(),
 });
 
-type CreateUnitData = z.infer<typeof createUnitSchema>;
+type EditUnitData = z.infer<typeof editUnitSchema>;
 
 const availableFeatures = [
   '24/7 Access',
@@ -40,18 +41,19 @@ const availableFeatures = [
   'Drive-up Access',
 ];
 
-interface CreateUnitFormProps {
-  onSuccess?: () => void;
+interface EditUnitDialogProps {
+  unit: Unit | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function CreateUnitForm({ onSuccess }: CreateUnitFormProps) {
+export function EditUnitDialog({ unit, open, onOpenChange }: EditUnitDialogProps) {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const { data: facilities, isLoading: facilitiesLoading } = useProviderFacilities();
-  const createUnit = useCreateUnit();
+  const updateUnit = useUpdateUnit();
   const { toast } = useToast();
 
-  const form = useForm<CreateUnitData>({
-    resolver: zodResolver(createUnitSchema),
+  const form = useForm<EditUnitData>({
+    resolver: zodResolver(editUnitSchema),
     defaultValues: {
       unitNumber: '',
       sizeCategory: 'Medium',
@@ -60,38 +62,58 @@ export function CreateUnitForm({ onSuccess }: CreateUnitFormProps) {
       heightMetres: 2.5,
       monthlyPricePounds: 100,
       floorLevel: 0,
+      status: 'available',
       features: [],
     },
   });
 
-  const onSubmit = async (data: CreateUnitData) => {
+  useEffect(() => {
+    if (unit && open) {
+      form.reset({
+        unitNumber: unit.unit_number,
+        sizeCategory: unit.size_category as 'Small' | 'Medium' | 'Large' | 'Extra Large',
+        lengthMetres: unit.length_metres || 2.0,
+        widthMetres: unit.width_metres || 2.0,
+        heightMetres: unit.height_metres || 2.5,
+        monthlyPricePounds: (unit.monthly_price_pence || 0) / 100,
+        floorLevel: unit.floor_level || 0,
+        status: unit.status as 'available' | 'occupied' | 'maintenance',
+        features: unit.features || [],
+      });
+      setSelectedFeatures(unit.features || []);
+    }
+  }, [unit, open, form]);
+
+  const onSubmit = async (data: EditUnitData) => {
+    if (!unit) return;
+
     try {
-      await createUnit.mutateAsync({
-        facility_id: data.facilityId,
-        unit_number: data.unitNumber,
-        size_category: data.sizeCategory,
-        length_metres: data.lengthMetres,
-        width_metres: data.widthMetres,
-        height_metres: data.heightMetres,
-        monthly_price_pence: data.monthlyPricePounds * 100,
-        floor_level: data.floorLevel,
-        features: selectedFeatures,
-        status: 'available',
+      await updateUnit.mutateAsync({
+        id: unit.id,
+        updates: {
+          unit_number: data.unitNumber,
+          size_category: data.sizeCategory,
+          length_metres: data.lengthMetres,
+          width_metres: data.widthMetres,
+          height_metres: data.heightMetres,
+          monthly_price_pence: data.monthlyPricePounds * 100,
+          floor_level: data.floorLevel,
+          status: data.status,
+          features: selectedFeatures,
+        },
       });
       
       toast({
-        title: "Unit created successfully",
-        description: `Unit ${data.unitNumber} has been created and is now available for booking.`,
+        title: "Unit updated successfully",
+        description: `Unit ${data.unitNumber} has been updated.`,
       });
       
-      form.reset();
-      setSelectedFeatures([]);
-      onSuccess?.();
+      onOpenChange(false);
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to create unit",
-        description: "There was an error creating the unit. Please check your input and try again.",
+        title: "Failed to update unit",
+        description: "There was an error updating the unit. Please try again.",
       });
     }
   };
@@ -107,40 +129,18 @@ export function CreateUnitForm({ onSuccess }: CreateUnitFormProps) {
 
   const currentPrice = form.watch('monthlyPricePounds');
 
+  if (!unit) return null;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create New Storage Unit</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit Unit {unit.unit_number}</DialogTitle>
+        </DialogHeader>
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="facilityId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Facility</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select facility" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {facilities?.map((facility) => (
-                          <SelectItem key={facility.id} value={facility.id}>
-                            {facility.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name="unitNumber"
@@ -150,6 +150,29 @@ export function CreateUnitForm({ onSuccess }: CreateUnitFormProps) {
                     <FormControl>
                       <Input placeholder="e.g., A01, B15" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="available">Available</SelectItem>
+                        <SelectItem value="occupied">Occupied</SelectItem>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -190,7 +213,7 @@ export function CreateUnitForm({ onSuccess }: CreateUnitFormProps) {
                     <FormControl>
                       <Input 
                         type="number" 
-                        min="0"
+                        min="-1"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
@@ -307,16 +330,25 @@ export function CreateUnitForm({ onSuccess }: CreateUnitFormProps) {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={createUnit.isPending || facilitiesLoading}
-            >
-              {createUnit.isPending ? 'Creating Unit...' : 'Create Unit'}
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                type="submit" 
+                className="flex-1" 
+                disabled={updateUnit.isPending}
+              >
+                {updateUnit.isPending ? 'Updating Unit...' : 'Update Unit'}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }

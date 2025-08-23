@@ -12,11 +12,19 @@ import { useUnits, useDeleteUnit } from "@/hooks/useUnits";
 import { useProviderFacilities } from "@/hooks/useFacilities";
 import { formatCurrencyMonthly } from "@/lib/currency";
 import { CreateUnitForm } from "@/components/forms/CreateUnitForm";
+import { UnitDetailsDialog } from "@/components/provider/UnitDetailsDialog";
+import { EditUnitDialog } from "@/components/provider/EditUnitDialog";
+import type { Database } from "@/integrations/supabase/types";
+
+type Unit = Database['public']['Tables']['units']['Row'];
 
 const UnitsManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: facilities, isLoading: facilitiesLoading } = useProviderFacilities();
   const facilityId = facilities?.[0]?.id; // Use first facility
@@ -27,6 +35,16 @@ const UnitsManagement = () => {
     if (confirm('Are you sure you want to delete this unit?')) {
       await deleteUnit.mutateAsync(unitId);
     }
+  };
+
+  const handleViewUnit = (unit: Unit) => {
+    setSelectedUnit(unit);
+    setViewDialogOpen(true);
+  };
+
+  const handleEditUnit = (unit: Unit) => {
+    setSelectedUnit(unit);
+    setEditDialogOpen(true);
   };
 
   const filteredUnits = units.filter((unit) => {
@@ -179,10 +197,18 @@ const UnitsManagement = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewUnit(unit)}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleEditUnit(unit)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 
@@ -207,6 +233,19 @@ const UnitsManagement = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialogs */}
+      <UnitDetailsDialog 
+        unit={selectedUnit}
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+      />
+      
+      <EditUnitDialog 
+        unit={selectedUnit}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+      />
     </div>
   );
 };
