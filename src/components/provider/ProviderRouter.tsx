@@ -26,14 +26,23 @@ export default function ProviderRouter() {
 
         setIsProvider(true);
 
+        console.log('Checking facilities for user:', user.id, 'role:', userRole);
+        
         const { data: facilities, error: facilityError } = await supabase
           .from('facilities')
-          .select('id')
-          .limit(1);
+          .select('id, name, provider_id')
+          .limit(10);
 
-        if (facilityError) throw facilityError;
+        console.log('Facilities query result:', { facilities, facilityError });
 
-        setHasFacility(!!facilities && facilities.length > 0);
+        if (facilityError) {
+          console.error('Facility check error:', facilityError);
+          throw facilityError;
+        }
+
+        const hasFacilities = !!facilities && facilities.length > 0;
+        console.log('Setting hasFacility to:', hasFacilities);
+        setHasFacility(hasFacilities);
       } catch {
         setHasFacility(false);
       }
