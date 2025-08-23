@@ -26,8 +26,6 @@ export default function ProviderRouter() {
 
         setIsProvider(true);
 
-        console.log('Checking facilities for user:', user.id, 'role:', userRole);
-        
         // First get the current user's provider profile ID
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -36,10 +34,7 @@ export default function ProviderRouter() {
           .eq('role', 'provider')
           .single();
 
-        console.log('Provider profile:', { profile, profileError });
-
         if (profileError) {
-          console.error('Profile error:', profileError);
           throw profileError;
         }
 
@@ -50,15 +45,11 @@ export default function ProviderRouter() {
           .eq('provider_id', profile.id)
           .limit(10);
 
-        console.log('Facilities query result:', { facilities, facilityError });
-
         if (facilityError) {
-          console.error('Facility check error:', facilityError);
           throw facilityError;
         }
 
         const hasFacilities = !!facilities && facilities.length > 0;
-        console.log('Setting hasFacility to:', hasFacilities);
         setHasFacility(hasFacilities);
       } catch {
         setHasFacility(false);
@@ -67,8 +58,6 @@ export default function ProviderRouter() {
 
     checkFacility();
   }, [user, userRole, authLoading, roleLoading, roleError]);
-
-  console.log('ProviderRouter render - isProvider:', isProvider, 'hasFacility:', hasFacility, 'authLoading:', authLoading, 'roleLoading:', roleLoading);
 
   if (authLoading || roleLoading) {
     return (
