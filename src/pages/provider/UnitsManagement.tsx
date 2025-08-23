@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Filter, Eye, Edit, Plus, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Search, Filter, Eye, Edit, Plus, Loader2, Trash2, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { formatCurrencyMonthly } from "@/lib/currency";
 import { CreateUnitForm } from "@/components/forms/CreateUnitForm";
 import { UnitDetailsDialog } from "@/components/provider/UnitDetailsDialog";
 import { EditUnitDialog } from "@/components/provider/EditUnitDialog";
+import { MaintenanceDialog } from "@/components/provider/MaintenanceDialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Unit = Database['public']['Tables']['units']['Row'];
@@ -25,6 +26,7 @@ const UnitsManagement = () => {
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false);
 
   const { data: facilities, isLoading: facilitiesLoading } = useProviderFacilities();
   const facilityId = facilities?.[0]?.id; // Use first facility
@@ -45,6 +47,11 @@ const UnitsManagement = () => {
   const handleEditUnit = (unit: Unit) => {
     setSelectedUnit(unit);
     setEditDialogOpen(true);
+  };
+
+  const handleMaintenanceUnit = (unit: Unit) => {
+    setSelectedUnit(unit);
+    setMaintenanceDialogOpen(true);
   };
 
   const filteredUnits = units.filter((unit) => {
@@ -213,6 +220,13 @@ const UnitsManagement = () => {
                         </Button>
                         <Button 
                           size="sm" 
+                          variant="outline"
+                          onClick={() => handleMaintenanceUnit(unit)}
+                        >
+                          <Wrench className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
                           variant="outline" 
                           onClick={() => handleDeleteUnit(unit.id)}
                           disabled={deleteUnit.isPending}
@@ -245,6 +259,13 @@ const UnitsManagement = () => {
         unit={selectedUnit}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
+      />
+
+      <MaintenanceDialog 
+        unitId={selectedUnit?.id || null}
+        unitNumber={selectedUnit?.unit_number}
+        open={maintenanceDialogOpen}
+        onOpenChange={setMaintenanceDialogOpen}
       />
     </div>
   );

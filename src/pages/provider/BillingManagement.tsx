@@ -1,118 +1,189 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { DollarSign, Download, Send, Home } from "lucide-react"
-import { Link } from "react-router-dom"
-import { formatCurrency } from "@/lib/currency"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DollarSign, ArrowLeft, CreditCard, Download, Eye, Loader2, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useBillingData } from "@/hooks/useBillingData";
+import { formatCurrency } from "@/lib/currency";
 
 export default function BillingManagement() {
-  const invoices = [
-    { id: "INV-001", customer: "John Smith", amount: 8500, status: "Paid", dueDate: "2024-04-01", paidDate: "2024-03-28" },
-    { id: "INV-002", customer: "Jane Doe", amount: 18000, status: "Overdue", dueDate: "2024-03-15", paidDate: null },
-    { id: "INV-003", customer: "Bob Wilson", amount: 12000, status: "Pending", dueDate: "2024-04-10", paidDate: null },
-  ]
+  const { data: billingData, isLoading } = useBillingData();
 
-  const stats = [
-    { title: "Monthly Revenue", value: formatCurrency(124500 / 100), change: "+15%" },
-    { title: "Outstanding", value: formatCurrency(23400 / 100), change: "-5%" },
-    { title: "Collection Rate", value: "94%", change: "+2%" },
-  ]
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "failed":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "overdue":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="border-b bg-card">
+          <div className="container mx-auto px-6 py-4">
             <div className="flex items-center space-x-4">
-              <Link to="/provider" className="flex items-center space-x-2 text-primary">
-                <Home className="h-5 w-5" />
-                <span className="text-sm text-muted-foreground">Dashboard</span>
+              <Link to="/provider" className="flex items-center space-x-2 text-muted-foreground hover:text-primary">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
               </Link>
-              <div className="w-px h-6 bg-border" />
               <h1 className="text-2xl font-bold">Billing & Payments</h1>
             </div>
           </div>
         </div>
-      </header>
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Loading billing data...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-      <main className="container mx-auto px-6 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="shadow-card">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">{stat.change}</span> from last month
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b bg-card">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link to="/provider" className="flex items-center space-x-2 text-muted-foreground hover:text-primary">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
+              </Link>
+              <h1 className="text-2xl font-bold">Billing & Payments</h1>
+            </div>
+            <Button className="bg-primary hover:bg-primary/90">
+              <Plus className="h-4 w-4 mr-2" />
+              Generate Invoice
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-6 py-8">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(billingData?.totalRevenue || 0)}</div>
+              <p className="text-xs text-muted-foreground">This month</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(billingData?.outstanding || 0)}</div>
+              <p className="text-xs text-muted-foreground">Unpaid invoices</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Paid This Month</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(billingData?.paidThisMonth || 0)}</div>
+              <p className="text-xs text-muted-foreground">Collected payments</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Payment Rate</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{billingData?.paymentRate || 0}%</div>
+              <p className="text-xs text-muted-foreground">On-time payments</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Recent Invoices */}
-        <Card className="shadow-card">
+        {/* Recent Payments */}
+        <Card>
           <CardHeader>
-            <CardTitle>Recent Invoices</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Recent Payments
+            </CardTitle>
             <CardDescription>
-              A list of recent invoices and their payment status.
+              Latest payment transactions from your customers
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.customer}</TableCell>
-                    <TableCell>{formatCurrency(invoice.amount / 100)}</TableCell>
-                    <TableCell>{invoice.dueDate}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={
-                          invoice.status === "Paid" ? "default" : 
-                          invoice.status === "Overdue" ? "destructive" : "secondary"
-                        }
-                      >
-                        {invoice.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Send className="h-4 w-4 mr-2" />
-                          Send
-                        </Button>
-                      </div>
-                    </TableCell>
+            {billingData?.recentPayments?.length ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Method</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {billingData.recentPayments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="font-medium">
+                        {payment.customerName || 'N/A'}
+                      </TableCell>
+                      <TableCell>{payment.unitNumber || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">
+                        {formatCurrency((payment.amount_pence || 0) / 100)}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(payment.payment_date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>{payment.payment_method || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Badge className={getPaymentStatusColor(payment.status)}>
+                          {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No payments recorded yet. Payments will appear here once customers start making payments.
+              </div>
+            )}
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
-  )
+  );
 }
