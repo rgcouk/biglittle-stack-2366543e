@@ -10,11 +10,12 @@ import AuthPage from "@/components/auth/AuthPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProviderRouter from "@/components/provider/ProviderRouter";
+import { ProviderLayout } from "@/components/layout/ProviderLayout";
+import { CustomerLayout } from "@/components/layout/CustomerLayout";
 import UnitsManagement from "./pages/provider/UnitsManagement";
 import ProviderSettings from "./pages/provider/Settings";
 import FacilityOnboarding from "@/components/onboarding/FacilityOnboarding";
 import FacilityStorefront from "./pages/facility/FacilityStorefront";
-import CustomerLayout from "@/components/customer/CustomerLayout";
 import CustomerDashboard from "./pages/customer/Dashboard";
 import CustomerBookings from "./pages/customer/Bookings";
 import ProviderAnalytics from "./pages/provider/Analytics";
@@ -39,44 +40,18 @@ const App = () => (
             {/* Storage Provider Dashboard Routes */}
             <Route path="/provider" element={
               <ProtectedRoute requiredRole="provider">
-                <ProviderRouter />
+                <ProviderLayout />
               </ProtectedRoute>
-            } />
-            <Route path="/provider/units" element={
-              <ProtectedRoute requiredRole="provider">
-                <UnitsManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider/settings" element={
-              <ProtectedRoute requiredRole="provider">
-                <ProviderSettings />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider/onboarding" element={
-              <ProtectedRoute requiredRole="provider">
-                <FacilityOnboarding />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider/analytics" element={
-              <ProtectedRoute requiredRole="provider">
-                <ProviderAnalytics />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider/billing" element={
-              <ProtectedRoute requiredRole="provider">
-                <BillingManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider/customers" element={
-              <ProtectedRoute requiredRole="provider">
-                <CustomersManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider/customize" element={
-              <ProtectedRoute requiredRole="provider">
-                <SiteCustomization />
-              </ProtectedRoute>
-            } />
+            }>
+              <Route index element={<ProviderRouter />} />
+              <Route path="units" element={<UnitsManagement />} />
+              <Route path="settings" element={<ProviderSettings />} />
+              <Route path="analytics" element={<ProviderAnalytics />} />
+              <Route path="billing" element={<BillingManagement />} />
+              <Route path="customers" element={<CustomersManagement />} />
+              <Route path="customization" element={<SiteCustomization />} />
+              <Route path="onboarding" element={<FacilityOnboarding />} />
+            </Route>
             
             {/* Public Facility Storefronts */}
             <Route path="/facility/:facilityId" element={<FacilityStorefront />} />
