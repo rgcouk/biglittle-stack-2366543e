@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,11 +20,23 @@ import {
   Upload,
   Trash2,
   Shield,
-  Plus
+  Plus,
+  Loader2
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/hooks/useAuth';
+import { useProviderFacilities, useUpdateFacility } from '@/hooks/useFacilities';
+import { useToast } from '@/hooks/use-toast';
 
 export function SettingsManager() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { data: facilities, isLoading: facilitiesLoading } = useProviderFacilities();
+  const updateFacility = useUpdateFacility();
+  
+  // Get the first facility (assuming single facility for now)
+  const facility = facilities?.[0];
+  
   const [notifications, setNotifications] = useState({
     email: true,
     sms: false,
@@ -38,6 +50,88 @@ export function SettingsManager() {
     sessionTimeout: 30
   });
 
+  const [formData, setFormData] = useState({
+    facilityName: '',
+    address: '',
+    facilityPhone: '',
+    facilityEmail: '',
+    description: '',
+    operatingHours: `Monday - Friday: 8:00 AM - 8:00 PM
+Saturday: 9:00 AM - 6:00 PM
+Sunday: 10:00 AM - 4:00 PM`
+  });
+
+  const [personalData, setPersonalData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: ''
+  });
+
+  // Load facility data when it becomes available
+  useEffect(() => {
+    if (facility) {
+      setFormData({
+        facilityName: facility.name || '',
+        address: facility.address || '',
+        facilityPhone: facility.phone || '',
+        facilityEmail: facility.email || '',
+        description: facility.description || '',
+        operatingHours: `Monday - Friday: 8:00 AM - 8:00 PM
+Saturday: 9:00 AM - 6:00 PM
+Sunday: 10:00 AM - 4:00 PM`
+      });
+    }
+  }, [facility]);
+
+  // Load user data
+  useEffect(() => {
+    if (user) {
+      const firstName = user.user_metadata?.first_name || user.email?.split('@')[0] || '';
+      const lastName = user.user_metadata?.last_name || '';
+      setPersonalData({
+        firstName,
+        lastName,
+        email: user.email || '',
+        phone: user.user_metadata?.phone || ''
+      });
+    }
+  }, [user]);
+
+  const handleSaveChanges = async () => {
+    if (!facility) {
+      toast({
+        title: "Error", 
+        description: "No facility found to update",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await updateFacility.mutateAsync({
+        id: facility.id,
+        updates: {
+          name: formData.facilityName,
+          address: formData.address,
+          phone: formData.facilityPhone,
+          email: formData.facilityEmail,
+          description: formData.description
+        }
+      });
+    } catch (error) {
+      console.error('Error updating facility:', error);
+    }
+  };
+
+  if (facilitiesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -46,8 +140,12 @@ export function SettingsManager() {
           <p className="text-muted-foreground">Manage your account and facility preferences</p>
         </div>
         
-        <Button>
-          <Save className="h-4 w-4 mr-2" />
+        <Button onClick={handleSaveChanges} disabled={updateFacility.isPending}>
+          {updateFacility.isPending ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4 mr-2" />
+          )}
           Save Changes
         </Button>
       </div>
@@ -69,8 +167,10 @@ export function SettingsManager() {
             <CardContent className="space-y-6">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src="/placeholder-avatar.jpg" />
-                  <AvatarFallback>JS</AvatarFallback>
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback>
+                    {personalData.firstName.charAt(0)}{personalData.lastName.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
                   <Button variant="outline">
@@ -87,19 +187,38 @@ export function SettingsManager() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" defaultValue="John" />
+                  <Input 
+                    id="firstName" 
+                    value={personalData.firstName}
+                    onChange={(e) => setPersonalData({...personalData, firstName: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" defaultValue="Smith" />
+                  <Input 
+                    id="lastName" 
+                    value={personalData.lastName}
+                    onChange={(e) => setPersonalData({...personalData, lastName: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
-                  <Input id="email" type="email" defaultValue="john.smith@facility.com" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={personalData.email}
+                    onChange={(e) => setPersonalData({...personalData, email: e.target.value})}
+                    disabled
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" type="tel" defaultValue="+44 20 7946 0958" />
+                  <Input 
+                    id="phone" 
+                    type="tel" 
+                    value={personalData.phone}
+                    onChange={(e) => setPersonalData({...personalData, phone: e.target.value})}
+                  />
                 </div>
               </div>
               
@@ -131,14 +250,19 @@ export function SettingsManager() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="facilityName">Facility Name</Label>
-                <Input id="facilityName" defaultValue="SecureStore Downtown" />
+                <Input 
+                  id="facilityName" 
+                  value={formData.facilityName}
+                  onChange={(e) => setFormData({...formData, facilityName: e.target.value})}
+                />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
                 <Textarea 
                   id="address" 
-                  defaultValue="123 Storage Street, City Centre, London"
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
                   rows={3}
                 />
               </div>
@@ -146,11 +270,19 @@ export function SettingsManager() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="facilityPhone">Phone</Label>
-                  <Input id="facilityPhone" defaultValue="+44 20 7946 0000" />
+                  <Input 
+                    id="facilityPhone" 
+                    value={formData.facilityPhone}
+                    onChange={(e) => setFormData({...formData, facilityPhone: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="facilityEmail">Email</Label>
-                  <Input id="facilityEmail" defaultValue="info@securestore.com" />
+                  <Input 
+                    id="facilityEmail" 
+                    value={formData.facilityEmail}
+                    onChange={(e) => setFormData({...formData, facilityEmail: e.target.value})}
+                  />
                 </div>
               </div>
               
@@ -158,9 +290,8 @@ export function SettingsManager() {
                 <Label htmlFor="hours">Operating Hours</Label>
                 <Textarea 
                   id="hours"
-                  defaultValue="Monday - Friday: 8:00 AM - 8:00 PM
-Saturday: 9:00 AM - 6:00 PM
-Sunday: 10:00 AM - 4:00 PM"
+                  value={formData.operatingHours}
+                  onChange={(e) => setFormData({...formData, operatingHours: e.target.value})}
                   rows={4}
                 />
               </div>
@@ -169,6 +300,8 @@ Sunday: 10:00 AM - 4:00 PM"
                 <Label htmlFor="description">Facility Description</Label>
                 <Textarea 
                   id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
                   placeholder="Describe your facility's features and amenities..."
                   rows={4}
                 />
