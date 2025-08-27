@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/currency';
 import { useFacilityContext } from '@/hooks/useFacilityContext';
 import { useAuth } from '@/hooks/useAuth';
+import { BookingFlow } from '@/components/customer/BookingFlow';
 import { User, Mail, MapPin, Phone } from 'lucide-react';
 
 export default function FacilityStorefront() {
@@ -16,6 +18,8 @@ export default function FacilityStorefront() {
   const { facilityId: contextFacilityId, isSubdomain } = useFacilityContext();
   const { user } = useAuth();
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
+  const [showBookingFlow, setShowBookingFlow] = useState(false);
+  const [selectedUnitForBooking, setSelectedUnitForBooking] = useState<any>(null);
   
   // Use facility ID from context (subdomain) or URL params (fallback)
   const facilityId = contextFacilityId || paramFacilityId;
@@ -55,15 +59,23 @@ export default function FacilityStorefront() {
     enabled: !!facilityId,
   });
 
-  const handleBooking = async (unitId: string) => {
-    if (!user) {
-      // Redirect to facility-specific signup
-      window.location.href = `/auth?type=customer&facility=${facilityId}`;
-      return;
-    }
+  const handleBooking = async (unit: any) => {
+    setSelectedUnitForBooking(unit);
+    setShowBookingFlow(true);
+  };
 
-    // Handle booking logic here
-    console.log('Booking unit:', unitId);
+  const handleBookingComplete = () => {
+    setShowBookingFlow(false);
+    setSelectedUnitForBooking(null);
+    // Optionally redirect to customer dashboard
+    if (user) {
+      window.location.href = '/customer/bookings';
+    }
+  };
+
+  const handleBookingCancel = () => {
+    setShowBookingFlow(false);
+    setSelectedUnitForBooking(null);
   };
 
   if (facilityLoading) {
@@ -217,7 +229,7 @@ export default function FacilityStorefront() {
                     className="w-full" 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleBooking(unit.id);
+                      handleBooking(unit);
                     }}
                     disabled={unit.status !== 'available'}
                   >
@@ -239,6 +251,23 @@ export default function FacilityStorefront() {
           </Card>
         )}
       </main>
+
+      {/* Booking Flow Dialog */}
+      <Dialog open={showBookingFlow} onOpenChange={setShowBookingFlow}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Book Your Storage Unit</DialogTitle>
+          </DialogHeader>
+          {selectedUnitForBooking && (
+            <BookingFlow
+              unit={selectedUnitForBooking}
+              facilityName={facility?.name || 'Storage Facility'}
+              onComplete={handleBookingComplete}
+              onCancel={handleBookingCancel}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

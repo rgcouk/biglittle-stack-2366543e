@@ -72,9 +72,20 @@ export function useCreateBooking() {
 
   return useMutation({
     mutationFn: async (booking: BookingInsert) => {
+      // Get current user to ensure customer_id is set
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('User not authenticated');
+      }
+
+      const bookingData = {
+        ...booking,
+        customer_id: user.id, // Ensure customer_id is always set to the authenticated user
+      };
+
       const { data, error } = await supabase
         .from('bookings')
-        .insert(booking)
+        .insert(bookingData)
         .select()
         .single();
       

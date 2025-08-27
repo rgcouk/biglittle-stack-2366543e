@@ -19,6 +19,8 @@ import {
   FileText
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useCreateBooking } from '@/hooks/useBookings';
 import { formatCurrency } from '@/lib/currency';
 
 interface Unit {
@@ -88,6 +90,8 @@ export function BookingFlow({ unit, facilityName, onComplete, onCancel }: Bookin
     agreeTerms: false
   });
   const { toast } = useToast();
+  const { user, signUp } = useAuth();
+  const createBooking = useCreateBooking();
 
   const progress = (currentStep / (steps.length - 1)) * 100;
 
@@ -104,11 +108,57 @@ export function BookingFlow({ unit, facilityName, onComplete, onCancel }: Bookin
   };
 
   const handleSubmit = async () => {
-    toast({
-      title: "Booking Submitted!",
-      description: "We'll contact you shortly to confirm your booking.",
-    });
-    onComplete();
+    try {
+      let currentUser = user;
+      
+      // If user is not authenticated, create an account first
+      if (!currentUser) {
+        const { error } = await signUp(
+          bookingData.personalInfo.email,
+          'temporary_password_123', // Temporary password - user will be prompted to set a real one
+          `${bookingData.personalInfo.firstName} ${bookingData.personalInfo.lastName}`,
+          'customer'
+        );
+        
+        if (error) {
+          toast({
+            title: "Account Creation Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // For now, we'll continue with the booking creation
+        // In a real app, you might want to wait for email verification
+      }
+
+      // Create the booking
+      const startDate = new Date(bookingData.moveInDate);
+      
+      await createBooking.mutateAsync({
+        unit_id: unit.id,
+        customer_id: currentUser?.id, // This will be set by the booking mutation if user is authenticated
+        start_date: startDate.toISOString().split('T')[0],
+        monthly_rate_pence: unit.monthly_price_pence,
+        status: 'active'
+      });
+
+      // Move to confirmation step
+      setCurrentStep(steps.length - 1);
+      
+      // Auto-close after a delay
+      setTimeout(() => {
+        onComplete();
+      }, 3000);
+      
+    } catch (error) {
+      toast({
+        title: "Booking Failed",
+        description: "Failed to create booking. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderStepContent = () => {
@@ -216,7 +266,9 @@ export function BookingFlow({ unit, facilityName, onComplete, onCancel }: Bookin
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-2xl font-bold mb-2">Personal Information</h2>
-              <p className="text-muted-foreground">We need your details to create your account</p>
+              <p className="text-muted-foreground">
+                {user ? 'Confirm your details for this booking' : 'We need your details to create your account'}
+              </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -468,33 +520,32 @@ export function BookingFlow({ unit, facilityName, onComplete, onCancel }: Bookin
             <div>
               <h2 className="text-3xl font-bold mb-2">Booking Confirmed!</h2>
               <p className="text-muted-foreground">
-                Thank you for choosing {facilityName}. We'll send you a confirmation email shortly.
+                {user ? 
+                  `Thank you for booking with ${facilityName}. Your booking has been created successfully.` :
+                  `Thank you for choosing ${facilityName}. We've created your account and booking. Please check your email for further instructions.`
+                }
               </p>
             </div>
             
             <Card className="text-left max-w-md mx-auto">
               <CardHeader>
-                <CardTitle className="text-lg">Next Steps</CardTitle>
+                <CardTitle className="text-lg">Booking Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span className="text-sm">We'll contact you within 24 hours</span>
+                <div className="flex justify-between">
+                  <span>Unit:</span>
+                  <span className="font-medium">{unit.unit_number}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <FileText className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Review and sign the rental agreement</span>
+                <div className="flex justify-between">
+                  <span>Monthly Rate:</span>
+                  <span className="font-medium">{formatCurrency(unit.monthly_price_pence)}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Building2 className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Move in on your chosen date</span>
+                <div className="flex justify-between">
+                  <span>Move-in Date:</span>
+                  <span className="font-medium">{new Date(bookingData.moveInDate).toLocaleDateString()}</span>
                 </div>
               </CardContent>
             </Card>
-            
-            <Button size="lg" onClick={onComplete}>
-              Continue to Dashboard
-            </Button>
           </div>
         );
 
@@ -504,18 +555,10 @@ export function BookingFlow({ unit, facilityName, onComplete, onCancel }: Bookin
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="p-4">
       <div className="max-w-4xl mx-auto">
         {/* Progress Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Book Your Storage Unit</h1>
-            <Button variant="ghost" onClick={onCancel}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </div>
-          
           <Progress value={progress} className="mb-4" />
           
           <div className="flex justify-between text-sm">
@@ -534,11 +577,9 @@ export function BookingFlow({ unit, facilityName, onComplete, onCancel }: Bookin
         </div>
 
         {/* Step Content */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
-            {renderStepContent()}
-          </CardContent>
-        </Card>
+        <div className="mb-8">
+          {renderStepContent()}
+        </div>
 
         {/* Navigation Buttons */}
         {currentStep < steps.length - 1 && (
@@ -554,9 +595,15 @@ export function BookingFlow({ unit, facilityName, onComplete, onCancel }: Bookin
             
             <Button
               onClick={currentStep === 4 ? handleSubmit : nextStep}
-              disabled={currentStep === 4 && !bookingData.agreeTerms}
+              disabled={
+                currentStep === 0 ||
+                (currentStep === 1 && !bookingData.moveInDate) ||
+                (currentStep === 2 && (!bookingData.personalInfo.firstName || !bookingData.personalInfo.lastName || !bookingData.personalInfo.email || !bookingData.personalInfo.phone)) ||
+                (currentStep === 4 && !bookingData.agreeTerms) ||
+                createBooking.isPending
+              }
             >
-              {currentStep === 4 ? 'Confirm Booking' : 'Continue'}
+              {currentStep === 4 ? (createBooking.isPending ? 'Creating Booking...' : 'Confirm Booking') : 'Next'}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
