@@ -409,6 +409,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      generate_monthly_payments: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -424,6 +428,10 @@ export type Database = {
       get_user_provider_profile_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      update_payment_statuses: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       user_has_active_booking_in_facility: {
         Args: { facility_uuid: string }
