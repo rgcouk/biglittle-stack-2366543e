@@ -20,7 +20,8 @@ import {
   XCircle,
   Plus,
   Eye,
-  MoreVertical
+  MoreVertical,
+  Loader2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -30,59 +31,27 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EnhancedTable } from '@/components/ui/enhanced-table';
 import { formatCurrency } from '@/lib/currency';
+import { useBillingData } from '@/hooks/useBillingData';
 
 interface Payment {
   id: string;
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string;
   unitNumber: string;
   amount: number;
   dueDate: string;
   paidDate?: string;
   status: 'pending' | 'paid' | 'overdue' | 'failed';
   paymentMethod?: string;
-  invoiceNumber: string;
+  invoiceNumber?: string;
 }
-
-const mockPayments: Payment[] = [
-  {
-    id: '1',
-    customerName: 'John Smith',
-    customerEmail: 'john.smith@email.com',
-    unitNumber: 'A-101',
-    amount: 15000, // £150.00
-    dueDate: '2024-01-15',
-    paidDate: '2024-01-14',
-    status: 'paid',
-    paymentMethod: 'Card ending in 4242',
-    invoiceNumber: 'INV-2024-001'
-  },
-  {
-    id: '2',
-    customerName: 'Sarah Johnson',
-    customerEmail: 'sarah.johnson@email.com',
-    unitNumber: 'B-205',
-    amount: 22500, // £225.00
-    dueDate: '2024-01-20',
-    status: 'pending',
-    invoiceNumber: 'INV-2024-002'
-  },
-  {
-    id: '3',
-    customerName: 'Mike Wilson',
-    customerEmail: 'mike.wilson@email.com',
-    unitNumber: 'C-110',
-    amount: 18000, // £180.00
-    dueDate: '2024-01-10',
-    status: 'overdue',
-    invoiceNumber: 'INV-2024-003'
-  }
-];
 
 export function BillingManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedPayments, setSelectedPayments] = useState<string[]>([]);
+  
+  const { data: billingData, isLoading, error } = useBillingData();
 
   const getStatusIcon = (status: Payment['status']) => {
     switch (status) {
@@ -104,10 +73,24 @@ export function BillingManager() {
     }
   };
 
-  const filteredPayments = mockPayments.filter(payment => {
+  // Transform real data into Payment format
+  const payments: Payment[] = billingData?.recentPayments?.map(payment => ({
+    id: payment.id,
+    customerName: payment.customerName || 'Unknown Customer',
+    customerEmail: undefined,
+    unitNumber: payment.unitNumber || 'N/A',
+    amount: Math.round((payment.amount_pence || 0)),
+    dueDate: new Date(payment.created_at).toISOString().split('T')[0],
+    paidDate: payment.payment_date ? new Date(payment.payment_date).toISOString().split('T')[0] : undefined,
+    status: payment.status as Payment['status'],
+    paymentMethod: payment.payment_method,
+    invoiceNumber: `INV-${payment.id.slice(0, 8)}`
+  })) || [];
+
+  const filteredPayments = payments.filter(payment => {
     const matchesSearch = payment.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          payment.unitNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase());
+                         (payment.invoiceNumber && payment.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -185,10 +168,29 @@ export function BillingManager() {
     }
   ];
 
-  const totalRevenue = mockPayments.reduce((sum, payment) => sum + payment.amount, 0);
-  const paidAmount = mockPayments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
-  const pendingAmount = mockPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
-  const overdueAmount = mockPayments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
+  // Use real billing data for calculations
+  const totalRevenue = Math.round((billingData?.totalRevenue || 0) * 100);
+  const paidAmount = Math.round((billingData?.paidThisMonth || 0) * 100);
+  const pendingAmount = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+  const overdueAmount = Math.round((billingData?.outstanding || 0) * 100);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+        <h3 className="text-lg font-semibold mb-2">Error Loading Billing Data</h3>
+        <p className="text-muted-foreground">Please try refreshing the page</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
