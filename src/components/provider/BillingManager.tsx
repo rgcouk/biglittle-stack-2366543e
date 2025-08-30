@@ -33,7 +33,7 @@ import {
 import { EnhancedTable } from '@/components/ui/enhanced-table';
 import { formatCurrency } from '@/lib/currency';
 import { useBillingData } from '@/hooks/useBillingData';
-import { usePaymentStatusUpdate, useUpdatePaymentStatuses, useGenerateMonthlyPayments } from '@/hooks/usePaymentManagement';
+import { useUpdatePaymentStatus, useUpdatePaymentStatuses } from '@/hooks/usePaymentActions';
 
 interface Payment {
   id: string;
@@ -54,9 +54,8 @@ export function BillingManager() {
   const [selectedPayments, setSelectedPayments] = useState<string[]>([]);
   
   const { data: billingData, isLoading, error } = useBillingData();
-  const updatePaymentStatus = usePaymentStatusUpdate();
-  const updateStatuses = useUpdatePaymentStatuses();
-  const generateMonthlyPayments = useGenerateMonthlyPayments();
+  const { mutate: updatePaymentStatus } = useUpdatePaymentStatus();
+  const { mutate: updatePaymentStatuses, isPending: isUpdatingStatuses } = useUpdatePaymentStatuses();
 
   const getStatusIcon = (status: Payment['status']) => {
     switch (status) {
@@ -167,12 +166,20 @@ export function BillingManager() {
               <Send className="h-4 w-4 mr-2" />
               Send Reminder
             </DropdownMenuItem>
-            {payment.status !== 'paid' && (
+            {payment.status === 'pending' && (
               <DropdownMenuItem 
-                onClick={() => updatePaymentStatus.mutate({ paymentId: payment.id, status: 'paid' })}
+                onClick={() => updatePaymentStatus({ paymentId: payment.id, status: 'paid' })}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Mark as Paid
+              </DropdownMenuItem>
+            )}
+            {payment.status === 'paid' && (
+              <DropdownMenuItem 
+                onClick={() => updatePaymentStatus({ paymentId: payment.id, status: 'pending' })}
+              >
+                <Clock className="h-4 w-4 mr-2" />
+                Mark as Pending
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -214,13 +221,17 @@ export function BillingManager() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => updateStatuses.mutate()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button 
+            variant="outline"
+            onClick={() => updatePaymentStatuses()}
+            disabled={isUpdatingStatuses}
+          >
+            {isUpdatingStatuses ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
             Update Statuses
-          </Button>
-          <Button variant="outline" onClick={() => generateMonthlyPayments.mutate()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Generate Monthly Payments
           </Button>
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
