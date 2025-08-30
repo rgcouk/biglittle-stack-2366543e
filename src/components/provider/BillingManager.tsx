@@ -21,7 +21,8 @@ import {
   Plus,
   Eye,
   MoreVertical,
-  Loader2
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,6 +33,7 @@ import {
 import { EnhancedTable } from '@/components/ui/enhanced-table';
 import { formatCurrency } from '@/lib/currency';
 import { useBillingData } from '@/hooks/useBillingData';
+import { usePaymentStatusUpdate, useUpdatePaymentStatuses, useGenerateMonthlyPayments } from '@/hooks/usePaymentManagement';
 
 interface Payment {
   id: string;
@@ -52,6 +54,9 @@ export function BillingManager() {
   const [selectedPayments, setSelectedPayments] = useState<string[]>([]);
   
   const { data: billingData, isLoading, error } = useBillingData();
+  const updatePaymentStatus = usePaymentStatusUpdate();
+  const updateStatuses = useUpdatePaymentStatuses();
+  const generateMonthlyPayments = useGenerateMonthlyPayments();
 
   const getStatusIcon = (status: Payment['status']) => {
     switch (status) {
@@ -162,6 +167,14 @@ export function BillingManager() {
               <Send className="h-4 w-4 mr-2" />
               Send Reminder
             </DropdownMenuItem>
+            {payment.status !== 'paid' && (
+              <DropdownMenuItem 
+                onClick={() => updatePaymentStatus.mutate({ paymentId: payment.id, status: 'paid' })}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Mark as Paid
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -201,6 +214,14 @@ export function BillingManager() {
         </div>
         
         <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => updateStatuses.mutate()}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Update Statuses
+          </Button>
+          <Button variant="outline" onClick={() => generateMonthlyPayments.mutate()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Generate Monthly Payments
+          </Button>
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export Report

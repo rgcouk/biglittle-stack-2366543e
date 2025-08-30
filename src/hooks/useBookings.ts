@@ -96,9 +96,10 @@ export function useCreateBooking() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['customer-bookings'] });
       queryClient.invalidateQueries({ queryKey: ['provider-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['billing-data'] }); // Invalidate billing data
       toast({
         title: "Success",
-        description: "Booking created successfully.",
+        description: "Booking created successfully. Payment record generated automatically.",
       });
     },
     onError: (error) => {
