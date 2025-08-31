@@ -34,6 +34,8 @@ import { EnhancedTable } from '@/components/ui/enhanced-table';
 import { formatCurrency } from '@/lib/currency';
 import { useBillingData } from '@/hooks/useBillingData';
 import { useUpdatePaymentStatus, useUpdatePaymentStatuses } from '@/hooks/usePaymentActions';
+import { InvoiceManager } from './InvoiceManager';
+import { SubscriptionManager } from './SubscriptionManager';
 
 interface Payment {
   id: string;
@@ -343,35 +345,11 @@ export function BillingManager() {
         </TabsContent>
         
         <TabsContent value="invoices" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Invoice Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Invoice Management</h3>
-                <p className="text-muted-foreground mb-4">Create, send, and track invoices for your customers</p>
-                <Button>Create New Invoice</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <InvoiceManager />
         </TabsContent>
         
         <TabsContent value="subscriptions" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recurring Billing</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Subscription Management</h3>
-                <p className="text-muted-foreground mb-4">Manage recurring payments and subscription billing</p>
-                <Button>Set Up Recurring Billing</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <SubscriptionManager />
         </TabsContent>
         
         <TabsContent value="settings" className="space-y-4">
