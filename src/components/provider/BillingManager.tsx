@@ -34,6 +34,7 @@ import { EnhancedTable } from '@/components/ui/enhanced-table';
 import { formatCurrency } from '@/lib/currency';
 import { useBillingData } from '@/hooks/useBillingData';
 import { useUpdatePaymentStatus, useUpdatePaymentStatuses } from '@/hooks/usePaymentActions';
+import { useStripePayment } from '@/hooks/useIntegrations';
 import { InvoiceManager } from './InvoiceManager';
 import { SubscriptionManager } from './SubscriptionManager';
 
@@ -334,6 +335,16 @@ export function BillingManager() {
           <Card>
             <CardHeader>
               <CardTitle>Payment Records</CardTitle>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {/* TODO: Implement Stripe Payment */}}
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Process Payment
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <EnhancedTable

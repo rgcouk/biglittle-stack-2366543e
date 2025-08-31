@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plug, Settings, CheckCircle, AlertCircle, ExternalLink, Key } from 'lucide-react';
+import { Plug, Settings, CheckCircle, AlertCircle, ExternalLink, Key, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,71 +8,69 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { useIntegrations, useCreateIntegration, useUpdateIntegration, useTestIntegration } from '@/hooks/useIntegrations';
 
-interface Integration {
+interface IntegrationTemplate {
   id: string;
   name: string;
   description: string;
-  status: 'connected' | 'disconnected' | 'error';
   icon: string;
   category: 'payment' | 'accounting' | 'communication' | 'analytics';
-  settings?: Record<string, any>;
+  defaultSettings: Record<string, any>;
 }
 
-const integrations: Integration[] = [
+const integrationTemplates: IntegrationTemplate[] = [
   {
     id: 'stripe',
     name: 'Stripe',
     description: 'Accept payments and manage billing',
-    status: 'disconnected',
     icon: '💳',
-    category: 'payment'
+    category: 'payment',
+    defaultSettings: { currency: 'gbp' }
   },
   {
     id: 'quickbooks',
     name: 'QuickBooks',
     description: 'Sync financial data and accounting',
-    status: 'disconnected',
     icon: '📊',
-    category: 'accounting'
+    category: 'accounting',
+    defaultSettings: { sync_frequency: 'daily' }
   },
   {
     id: 'mailgun',
     name: 'Mailgun',
     description: 'Send automated emails and notifications',
-    status: 'connected',
     icon: '📧',
     category: 'communication',
-    settings: { domain: 'mg.example.com' }
+    defaultSettings: { domain: '' }
   },
   {
     id: 'google-analytics',
     name: 'Google Analytics',
     description: 'Track website and customer behavior',
-    status: 'connected',
     icon: '📈',
     category: 'analytics',
-    settings: { tracking_id: 'GA-123456789' }
+    defaultSettings: { tracking_id: '' }
   },
   {
     id: 'twilio',
     name: 'Twilio',
     description: 'SMS notifications and customer communication',
-    status: 'error',
     icon: '📱',
-    category: 'communication'
+    category: 'communication',
+    defaultSettings: { phone_number: '' }
   },
   {
     id: 'zapier',
     name: 'Zapier',
     description: 'Connect to 1000+ apps and automate workflows',
-    status: 'disconnected',
     icon: '⚡',
-    category: 'analytics'
+    category: 'analytics',
+    defaultSettings: { webhook_url: '' }
   }
 ];
 
-const getStatusColor = (status: Integration['status']) => {
+const getStatusColor = (status: 'connected' | 'disconnected' | 'error') => {
   switch (status) {
     case 'connected':
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
@@ -83,7 +81,7 @@ const getStatusColor = (status: Integration['status']) => {
   }
 };
 
-const getStatusIcon = (status: Integration['status']) => {
+const getStatusIcon = (status: 'connected' | 'disconnected' | 'error') => {
   switch (status) {
     case 'connected':
       return <CheckCircle className="h-4 w-4" />;
@@ -95,37 +93,80 @@ const getStatusIcon = (status: Integration['status']) => {
 };
 
 export function IntegrationCenter() {
-  const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<IntegrationTemplate | null>(null);
   const [apiKey, setApiKey] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
+  const [isEnabled, setIsEnabled] = useState(false);
   const { toast } = useToast();
+
+  const { data: integrations = [], isLoading } = useIntegrations();
+  const createIntegration = useCreateIntegration();
+  const updateIntegration = useUpdateIntegration();
+  const testIntegration = useTestIntegration();
 
   const categories = ['all', 'payment', 'accounting', 'communication', 'analytics'] as const;
   const [activeCategory, setActiveCategory] = useState<typeof categories[number]>('all');
 
+  // Merge templates with actual integrations
+  const mergedIntegrations = integrationTemplates.map(template => {
+    const existing = integrations.find(i => i.service_name === template.id);
+    return {
+      ...template,
+      status: existing?.status || 'disconnected' as const,
+      integrationId: existing?.id,
+      settings: existing?.settings || template.defaultSettings,
+      lastTested: existing?.last_tested_at,
+    };
+  });
+
   const filteredIntegrations = activeCategory === 'all' 
-    ? integrations 
-    : integrations.filter(i => i.category === activeCategory);
+    ? mergedIntegrations 
+    : mergedIntegrations.filter(i => i.category === activeCategory);
 
-  const handleConnect = (integration: Integration) => {
-    toast({
-      title: "Integration Connected",
-      description: `${integration.name} has been connected successfully.`,
+  const handleConnect = async (template: IntegrationTemplate) => {
+    if (!apiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please enter an API key to connect this integration.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await createIntegration.mutateAsync({
+      service_name: template.id,
+      service_id: template.id,
+      status: 'connected',
+      api_key_encrypted: apiKey,
+      webhook_url: webhookUrl || undefined,
+      settings: { ...template.defaultSettings, enabled: isEnabled },
+    });
+
+    setSelectedTemplate(null);
+    setApiKey('');
+    setWebhookUrl('');
+  };
+
+  const handleDisconnect = async (integrationId: string) => {
+    await updateIntegration.mutateAsync({
+      integrationId,
+      updates: { status: 'disconnected' },
     });
   };
 
-  const handleDisconnect = (integration: Integration) => {
-    toast({
-      title: "Integration Disconnected", 
-      description: `${integration.name} has been disconnected.`,
-    });
-  };
-
-  const handleTest = (integration: Integration) => {
-    toast({
-      title: "Testing Integration",
-      description: `Testing connection to ${integration.name}...`,
-    });
+  const handleTest = async (serviceName: string) => {
+    const integration = integrations.find(i => i.service_name === serviceName);
+    if (integration?.api_key_encrypted) {
+      await testIntegration.mutateAsync({
+        serviceName,
+        apiKey: integration.api_key_encrypted,
+      });
+      
+      await updateIntegration.mutateAsync({
+        integrationId: integration.id,
+        updates: { last_tested_at: new Date().toISOString() },
+      });
+    }
   };
 
   return (
@@ -148,87 +189,104 @@ export function IntegrationCenter() {
             </TabsList>
 
             <TabsContent value={activeCategory} className="mt-6">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredIntegrations.map((integration) => (
-                  <Card key={integration.id} className="relative">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{integration.icon}</span>
-                          <div>
-                            <CardTitle className="text-lg">{integration.name}</CardTitle>
-                            <Badge className={getStatusColor(integration.status)}>
-                              <span className="flex items-center gap-1">
-                                {getStatusIcon(integration.status)}
-                                {integration.status}
-                              </span>
-                            </Badge>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredIntegrations.map((integration) => (
+                    <Card key={integration.id} className="relative">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{integration.icon}</span>
+                            <div>
+                              <CardTitle className="text-lg">{integration.name}</CardTitle>
+                              <Badge className={getStatusColor(integration.status)}>
+                                <span className="flex items-center gap-1">
+                                  {getStatusIcon(integration.status)}
+                                  {integration.status}
+                                </span>
+                              </Badge>
+                            </div>
                           </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedIntegration(integration)}
-                        >
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {integration.description}
-                      </p>
-                      <div className="flex gap-2">
-                        {integration.status === 'connected' ? (
-                          <>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleTest(integration)}
-                            >
-                              Test
-                            </Button>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => handleDisconnect(integration)}
-                            >
-                              Disconnect
-                            </Button>
-                          </>
-                        ) : (
-                          <Button 
+                          <Button
+                            variant="ghost"
                             size="sm"
-                            onClick={() => handleConnect(integration)}
+                            onClick={() => setSelectedTemplate(integration)}
                           >
-                            Connect
+                            <Settings className="h-4 w-4" />
                           </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {integration.description}
+                        </p>
+                        {integration.lastTested && (
+                          <p className="text-xs text-muted-foreground mb-4">
+                            Last tested: {new Date(integration.lastTested).toLocaleString()}
+                          </p>
                         )}
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                        <div className="flex gap-2">
+                          {integration.status === 'connected' ? (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleTest(integration.id)}
+                                disabled={testIntegration.isPending}
+                              >
+                                {testIntegration.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  'Test'
+                                )}
+                              </Button>
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => integration.integrationId && handleDisconnect(integration.integrationId)}
+                                disabled={updateIntegration.isPending}
+                              >
+                                Disconnect
+                              </Button>
+                            </>
+                          ) : (
+                            <Button 
+                              size="sm"
+                              onClick={() => setSelectedTemplate(integration)}
+                            >
+                              Connect
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm">
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
 
-      {selectedIntegration && (
+      {selectedTemplate && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              {selectedIntegration.name} Configuration
+              {selectedTemplate.name} Configuration
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="api-key">API Key</Label>
+                <Label htmlFor="api-key">API Key *</Label>
                 <Input
                   id="api-key"
                   type="password"
@@ -256,7 +314,7 @@ export function IntegrationCenter() {
                     Allow this integration to access your facility data
                   </p>
                 </div>
-                <Switch defaultChecked={selectedIntegration.status === 'connected'} />
+                <Switch checked={isEnabled} onCheckedChange={setIsEnabled} />
               </div>
               
               <div className="flex items-center justify-between">
@@ -271,8 +329,21 @@ export function IntegrationCenter() {
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button>Save Configuration</Button>
-              <Button variant="outline" onClick={() => setSelectedIntegration(null)}>
+              <Button 
+                onClick={() => handleConnect(selectedTemplate)}
+                disabled={createIntegration.isPending || !apiKey}
+              >
+                {createIntegration.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Connect Integration
+              </Button>
+              <Button variant="outline" onClick={() => {
+                setSelectedTemplate(null);
+                setApiKey('');
+                setWebhookUrl('');
+                setIsEnabled(false);
+              }}>
                 Cancel
               </Button>
             </div>

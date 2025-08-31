@@ -138,6 +138,56 @@ export type Database = {
         }
         Relationships: []
       }
+      integrations: {
+        Row: {
+          api_key_encrypted: string | null
+          created_at: string
+          id: string
+          last_tested_at: string | null
+          provider_id: string
+          service_id: string
+          service_name: string
+          settings: Json | null
+          status: string
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          created_at?: string
+          id?: string
+          last_tested_at?: string | null
+          provider_id: string
+          service_id: string
+          service_name: string
+          settings?: Json | null
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          created_at?: string
+          id?: string
+          last_tested_at?: string | null
+          provider_id?: string
+          service_id?: string
+          service_name?: string
+          settings?: Json | null
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount_pence: number
