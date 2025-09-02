@@ -76,11 +76,18 @@ export function useCreateIntegration() {
 
   return useMutation({
     mutationFn: async (integration: Omit<Integration, 'id' | 'provider_id' | 'created_at' | 'updated_at'>) => {
+      // Get the current user's provider profile ID
+      const { data: providerData, error: providerError } = await supabase
+        .rpc('get_user_provider_profile_id');
+      
+      if (providerError) throw providerError;
+      if (!providerData) throw new Error('User is not a provider');
+
       const { data, error } = await supabase
         .from('integrations')
         .insert({
           ...integration,
-          // Provider ID will be set by RLS based on current user
+          provider_id: providerData,
         })
         .select()
         .single();
