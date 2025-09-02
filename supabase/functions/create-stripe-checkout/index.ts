@@ -13,7 +13,41 @@ serve(async (req) => {
   }
 
   try {
-    const { bookingId, unitId, monthlyRatePence } = await req.json();
+    // SECURITY: Input validation to prevent injection attacks
+    const body = await req.json();
+    const { bookingId, unitId, monthlyRatePence } = body;
+
+    // Validate required fields
+    if (!bookingId || !unitId || !monthlyRatePence) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields: bookingId, unitId, monthlyRatePence' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate data types and ranges
+    if (typeof bookingId !== 'string' || typeof unitId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'bookingId and unitId must be strings' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (typeof monthlyRatePence !== 'number' || monthlyRatePence < 100 || monthlyRatePence > 100000000) {
+      return new Response(
+        JSON.stringify({ error: 'monthlyRatePence must be a number between 100 and 100000000' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(bookingId) || !uuidRegex.test(unitId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid UUID format for bookingId or unitId' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Create Supabase client
     const supabaseClient = createClient(

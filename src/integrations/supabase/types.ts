@@ -268,20 +268,6 @@ export type Database = {
             referencedRelation: "facilities"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "profiles_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities_safe_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       units: {
@@ -336,20 +322,6 @@ export type Database = {
             columns: ["facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "units_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "units_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities_safe_public"
             referencedColumns: ["id"]
           },
         ]
@@ -430,20 +402,6 @@ export type Database = {
             columns: ["facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "units_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "units_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities_safe_public"
             referencedColumns: ["id"]
           },
         ]

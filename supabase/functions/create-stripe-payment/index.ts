@@ -13,7 +13,41 @@ serve(async (req) => {
   }
 
   try {
-    const { paymentId, amount } = await req.json();
+    // SECURITY: Input validation to prevent injection attacks
+    const body = await req.json();
+    const { paymentId, amount } = body;
+
+    // Validate required fields
+    if (!paymentId || !amount) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields: paymentId, amount' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate data types and ranges
+    if (typeof paymentId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'paymentId must be a string' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (typeof amount !== 'number' || amount < 100 || amount > 100000000) {
+      return new Response(
+        JSON.stringify({ error: 'amount must be a number between 100 and 100000000 pence' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate UUID format for paymentId
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(paymentId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid UUID format for paymentId' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Create Supabase client
     const supabaseClient = createClient(
