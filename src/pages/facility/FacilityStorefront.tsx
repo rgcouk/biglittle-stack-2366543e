@@ -25,18 +25,30 @@ export default function FacilityStorefront() {
   const facilityId = contextFacilityId || paramFacilityId;
 
   const { data: facility, isLoading: facilityLoading } = useQuery({
-    queryKey: ['facility', facilityId],
+    queryKey: ['public-facility-marketing', facilityId],
     queryFn: async () => {
       if (!facilityId) throw new Error('No facility ID provided');
       
-      const { data, error } = await supabase
+      // Try to get facility from public marketing table first (for anonymous users)
+      const { data: publicFacility, error: publicError } = await supabase
+        .from('facilities_public_marketing')
+        .select('*')
+        .eq('id', facilityId)
+        .single();
+      
+      if (publicFacility) {
+        return publicFacility;
+      }
+      
+      // If not found in public table, try the main facilities table (for authenticated users)
+      const { data: privateFacility, error: privateError } = await supabase
         .from('facilities')
         .select('*')
         .eq('id', facilityId)
         .single();
       
-      if (error) throw error;
-      return data;
+      if (privateError) throw privateError;
+      return privateFacility;
     },
     enabled: !!facilityId,
   });
@@ -143,16 +155,16 @@ export default function FacilityStorefront() {
           )}
           
           <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
-            {facility.phone && (
+            {(facility as any).phone && (
               <div className="flex items-center gap-1">
                 <Phone className="h-4 w-4" />
-                <span>{facility.phone}</span>
+                <span>{(facility as any).phone}</span>
               </div>
             )}
-            {facility.email && (
+            {(facility as any).email && (
               <div className="flex items-center gap-1">
                 <Mail className="h-4 w-4" />
-                <span>{facility.email}</span>
+                <span>{(facility as any).email}</span>
               </div>
             )}
           </div>
