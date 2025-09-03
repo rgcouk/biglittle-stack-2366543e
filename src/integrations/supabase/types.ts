@@ -270,6 +270,69 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          id: string
+          operation: string
+          user_id: string
+          window_start: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          id?: string
+          operation: string
+          user_id: string
+          window_start?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          id?: string
+          operation?: string
+          user_id?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
+      security_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       units: {
         Row: {
           created_at: string
@@ -417,6 +480,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_rate_limit_enhanced: {
+        Args: {
+          max_attempts?: number
+          operation_type: string
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
+      cleanup_old_rate_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_monthly_payments: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -437,11 +512,28 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      log_sensitive_access: {
+        Args: {
+          action_type: string
+          details?: Json
+          record_id?: string
+          table_name: string
+        }
+        Returns: undefined
+      }
       update_payment_statuses: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
       user_has_active_booking_in_facility: {
+        Args: { facility_uuid: string }
+        Returns: boolean
+      }
+      validate_integration_access: {
+        Args: { integration_uuid: string }
+        Returns: boolean
+      }
+      validate_user_facility_access: {
         Args: { facility_uuid: string }
         Returns: boolean
       }
