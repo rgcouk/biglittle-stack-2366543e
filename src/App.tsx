@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -53,13 +54,12 @@ function SecurityProvider({ children }: { children: React.ReactNode }) {
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <SecurityProvider>
-        <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <FacilityProvider>
-            <AuthProvider>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <SecurityProvider>
+          <TooltipProvider>
+            <BrowserRouter>
+              <FacilityProvider>
+                <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<AuthPage />} />
@@ -95,15 +95,18 @@ const App = () => (
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-          </FacilityProvider>
-        </BrowserRouter>
-          <PerformanceMonitor />
+                </Routes>
+                <Toaster />
+                <Sonner />
+                <PerformanceMonitor />
+              </AuthProvider>
+            </FacilityProvider>
+          </BrowserRouter>
         </TooltipProvider>
       </SecurityProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
+    </ThemeProvider>
+  </QueryClientProvider>
+</ErrorBoundary>
 );
 
 export default App;
