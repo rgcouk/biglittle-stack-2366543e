@@ -1,9 +1,151 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { LucideIcon } from 'lucide-react';
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
+import { cn } from "@/lib/utils"
+
+const cardVariants = cva(
+  "rounded-lg border bg-card text-card-foreground transition-all duration-200",
+  {
+    variants: {
+      variant: {
+        default: "shadow-card",
+        elevated: "shadow-elevated hover:shadow-intense",
+        gradient: "bg-gradient-card border-border/50",
+        modern: "bg-gradient-subtle border-border/30 hover:shadow-modern",
+        glow: "shadow-glow border-primary/20",
+        interactive: "hover:shadow-elevated hover:scale-[1.02] cursor-pointer active:scale-100",
+      },
+      padding: {
+        none: "",
+        sm: "p-4",
+        default: "p-6",
+        lg: "p-8",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      padding: "default",
+    },
+  }
+)
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof cardVariants>
+>(({ className, variant, padding, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(cardVariants({ variant, padding }), className)}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    centered?: boolean
+  }
+>(({ className, centered, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "flex flex-col space-y-1.5 p-6",
+      centered && "text-center items-center",
+      className
+    )}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    size?: "sm" | "default" | "lg" | "xl"
+  }
+>(({ className, size = "default", ...props }, ref) => {
+  const sizeClasses = {
+    sm: "text-base font-semibold",
+    default: "text-2xl font-semibold leading-none tracking-tight",
+    lg: "text-3xl font-bold leading-none tracking-tight",
+    xl: "text-4xl font-bold leading-none tracking-tight",
+  }
+  
+  return (
+    <div
+      ref={ref}
+      className={cn(sizeClasses[size], className)}
+      {...props}
+    />
+  )
+})
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    size?: "sm" | "default" | "lg"
+  }
+>(({ className, size = "default", ...props }, ref) => {
+  const sizeClasses = {
+    sm: "text-xs text-muted-foreground",
+    default: "text-sm text-muted-foreground",
+    lg: "text-base text-muted-foreground",
+  }
+  
+  return (
+    <div
+      ref={ref}
+      className={cn(sizeClasses[size], className)}
+      {...props}
+    />
+  )
+})
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    padding?: "none" | "sm" | "default" | "lg"
+  }
+>(({ className, padding = "default", ...props }, ref) => {
+  const paddingClasses = {
+    none: "",
+    sm: "p-4 pt-0",
+    default: "p-6 pt-0",
+    lg: "p-8 pt-0",
+  }
+  
+  return (
+    <div
+      ref={ref}
+      className={cn(paddingClasses[padding], className)}
+      {...props}
+    />
+  )
+})
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    centered?: boolean
+  }
+>(({ className, centered, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "flex items-center p-6 pt-0",
+      centered && "justify-center",
+      className
+    )}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+// Enhanced Cards for specific use cases
 interface EnhancedCardProps {
   title: string;
   value: string | number;
@@ -12,7 +154,7 @@ interface EnhancedCardProps {
     label: string;
     trend: 'up' | 'down' | 'neutral';
   };
-  icon?: LucideIcon;
+  icon?: React.ComponentType<{ className?: string }>;
   className?: string;
   loading?: boolean;
   onClick?: () => void;
@@ -42,7 +184,7 @@ export function EnhancedCard({
 
   if (loading) {
     return (
-      <Card className={cn('animate-pulse', className)}>
+      <Card className={cn('animate-pulse', className)} variant="elevated">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="h-4 bg-muted rounded w-20"></div>
           {Icon && <div className="h-4 w-4 bg-muted rounded"></div>}
@@ -57,16 +199,12 @@ export function EnhancedCard({
 
   return (
     <Card
-      className={cn(
-        'transition-all duration-300 hover:shadow-md',
-        highlight && 'ring-2 ring-primary/20 shadow-lg',
-        onClick && 'cursor-pointer hover:scale-[1.02]',
-        className
-      )}
+      variant={highlight ? "glow" : onClick ? "interactive" : "modern"}
+      className={cn(className)}
       onClick={onClick}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle size="sm" className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
         {Icon && (
@@ -80,53 +218,26 @@ export function EnhancedCard({
           {typeof value === 'number' ? value.toLocaleString() : value}
         </div>
         {change && (
-          <Badge
-            variant="secondary"
+          <div
             className={cn(
-              'text-xs font-medium',
+              'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
               getTrendColor(change.trend)
             )}
           >
             {change.trend === 'up' ? '↗' : change.trend === 'down' ? '↘' : '→'} {change.label}
-          </Badge>
+          </div>
         )}
       </CardContent>
     </Card>
   );
 }
 
-// Specialized cards for common use cases
-export function RevenueCard({ value, change, loading }: {
-  value: number;
-  change?: EnhancedCardProps['change'];
-  loading?: boolean;
-}) {
-  return (
-    <EnhancedCard
-      title="Monthly Revenue"
-      value={new Intl.NumberFormat('en-GB', {
-        style: 'currency',
-        currency: 'GBP',
-      }).format(value / 100)}
-      change={change}
-      loading={loading}
-      highlight={change?.trend === 'up'}
-    />
-  );
-}
-
-export function OccupancyCard({ value, change, loading }: {
-  value: number;
-  change?: EnhancedCardProps['change'];
-  loading?: boolean;
-}) {
-  return (
-    <EnhancedCard
-      title="Occupancy Rate"
-      value={`${value.toFixed(1)}%`}
-      change={change}
-      loading={loading}
-      highlight={value >= 90}
-    />
-  );
+export { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription, 
+  CardContent, 
+  CardFooter,
+  cardVariants
 }
