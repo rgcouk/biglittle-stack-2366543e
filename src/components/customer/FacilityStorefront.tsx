@@ -72,9 +72,9 @@ export function FacilityStorefront({ facilityId, onBookUnit }: FacilityStorefron
     );
   }
 
-  const { facility, availableUnits } = data;
-  const displayUnits = units || availableUnits;
-
+  const { facility, unitCategories, availableUnits } = data;
+  const displayUnits = unitCategories || []; // Use secure aggregate data
+  
   const categories = ['all', ...new Set(displayUnits.map(unit => unit.size_category))];
   const filteredUnits = selectedCategory === 'all' 
     ? displayUnits 
@@ -105,9 +105,9 @@ export function FacilityStorefront({ facilityId, onBookUnit }: FacilityStorefron
                 <MapPin className="h-4 w-4 text-primary" />
                 <span>{facility.address}</span>
               </div>
-              {availableUnits.length > 0 && (
+              {unitCategories && unitCategories.length > 0 && (
                 <Badge variant="secondary" className="px-3 py-1">
-                  {availableUnits.length} units available
+                  {unitCategories.reduce((total, cat) => total + cat.available_count, 0)} units available
                 </Badge>
               )}
             </div>
@@ -207,9 +207,9 @@ export function FacilityStorefront({ facilityId, onBookUnit }: FacilityStorefron
                 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
                 : 'space-y-4'
             )}>
-              {filteredUnits.map((unit, index) => (
+              {filteredUnits.map((category, index) => (
                 <Card 
-                  key={unit.id} 
+                  key={`${category.facility_id}-${category.size_category}`}
                   className={cn(
                     'hover:shadow-lg transition-all duration-300 animate-in slide-in-from-bottom-4',
                     viewMode === 'list' && 'flex items-center'
@@ -218,37 +218,47 @@ export function FacilityStorefront({ facilityId, onBookUnit }: FacilityStorefron
                 >
                   <CardHeader className={cn(viewMode === 'list' && 'flex-1')}>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Unit {unit.unit_number}</CardTitle>
-                      <Badge variant="outline">{unit.size_category}</Badge>
+                      <CardTitle className="text-lg">{category.size_category} Units</CardTitle>
+                      <Badge variant="outline">{category.available_count} available</Badge>
                     </div>
                     <div className="text-2xl font-bold text-primary">
-                      {formatCurrency(unit.monthly_price_pence)}<span className="text-sm font-normal text-muted-foreground">/month</span>
+                      {category.pricing_type === 'Fixed Rate' 
+                        ? `£${category.min_price_range_pounds}`
+                        : `£${category.min_price_range_pounds} - £${category.max_price_range_pounds}`
+                      }
+                      <span className="text-sm font-normal text-muted-foreground">/month</span>
                     </div>
                   </CardHeader>
                   <CardContent className={cn(viewMode === 'list' && 'flex items-center gap-4')}>
                     <div className={cn('space-y-2', viewMode === 'list' && 'flex gap-4 space-y-0')}>
-                      {unit.width_metres && unit.length_metres && (
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Ruler className="h-4 w-4" />
-                          {unit.width_metres}m × {unit.length_metres}m
-                          {unit.height_metres && ` × ${unit.height_metres}m`}
-                        </div>
-                      )}
-                      {unit.features && unit.features.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {unit.features.slice(0, 2).map((feature) => (
-                            <Badge key={feature} variant="secondary" className="text-xs">
-                              {feature}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Building2 className="h-4 w-4" />
+                        {category.size_category} storage units
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Contact for exact dimensions and availability
+                      </div>
                     </div>
                     <Button 
                       className={cn('w-full mt-4', viewMode === 'list' && 'w-auto mt-0')}
-                      onClick={() => onBookUnit?.(unit)}
+                      onClick={() => {
+                        // Create a placeholder unit object for the booking flow
+                        if (onBookUnit) {
+                          const placeholderUnit = {
+                            id: `category-${category.size_category}`,
+                            unit_number: `${category.size_category} Unit`,
+                            size_category: category.size_category,
+                            monthly_price_pence: category.min_price_range_pounds * 100,
+                            width_metres: undefined,
+                            length_metres: undefined,
+                            height_metres: undefined,
+                            features: []
+                          };
+                          onBookUnit(placeholderUnit);
+                        }
+                      }}
                     >
-                      Book This Unit
+                      Inquire About Units
                     </Button>
                   </CardContent>
                 </Card>
