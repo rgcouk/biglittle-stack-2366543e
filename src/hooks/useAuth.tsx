@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AuthErrorBoundary } from '@/components/auth/AuthErrorBoundary';
 
 interface AuthContextType {
   user: User | null;
@@ -249,7 +250,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthErrorBoundary>
+      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    </AuthErrorBoundary>
+  );
 }
 
 export function useAuth() {

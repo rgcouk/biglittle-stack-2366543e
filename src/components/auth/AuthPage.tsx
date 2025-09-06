@@ -9,10 +9,12 @@ import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserRole } from "@/hooks/useUserRole"
 import { useFacilityContext } from "@/hooks/useFacilityContext"
-import { ArrowLeft, Building, Users, AlertCircle, RefreshCw } from "lucide-react"
+import { ArrowLeft, Building, Users, AlertCircle, RefreshCw, KeyRound } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { forceAuthRefresh } from "@/utils/authUtils"
+import { supabase } from "@/integrations/supabase/client"
+import { AuthDebugPanel } from "@/components/auth/AuthDebugPanel"
 
 const AuthPage = () => {
   const [email, setEmail] = useState("")
@@ -20,6 +22,8 @@ const AuthPage = () => {
   const [displayName, setDisplayName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("signin")
+  const [resetEmail, setResetEmail] = useState("")
+  const [isResetting, setIsResetting] = useState(false)
   const [searchParams] = useSearchParams()
   
   const { user, signUp, signIn } = useAuth()
@@ -150,6 +154,48 @@ const AuthPage = () => {
     }
   }
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsResetting(true)
+
+    try {
+      if (!resetEmail) {
+        toast({
+          title: "Email required",
+          description: "Please enter your email address",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth?type=reset`,
+      })
+
+      if (error) {
+        toast({
+          title: "Reset failed",
+          description: error.message,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Check your email",
+          description: "Password reset instructions have been sent to your email.",
+        })
+        setResetEmail("")
+      }
+    } catch (error: any) {
+      toast({
+        title: "Reset failed",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      })
+    } finally {
+      setIsResetting(false)
+    }
+  }
+
   const getTitle = () => {
     if (isFacilityCustomer) return "Join This Storage Facility"
     if (isSubdomain && !authType) return "Customer Access"
@@ -194,9 +240,10 @@ const AuthPage = () => {
           
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="reset">Reset</TabsTrigger>
               </TabsList>
               
               <TabsContent value="signin" className="space-y-4 mt-6">
@@ -226,6 +273,16 @@ const AuthPage = () => {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
+                  <div className="text-center mt-4">
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="text-sm text-muted-foreground"
+                      onClick={() => setActiveTab("reset")}
+                    >
+                      Forgot your password?
+                    </Button>
+                  </div>
                 </form>
               </TabsContent>
               
@@ -280,34 +337,50 @@ const AuthPage = () => {
                   </Button>
                 </form>
               </TabsContent>
+
+              <TabsContent value="reset" className="space-y-4 mt-6">
+                <Alert>
+                  <KeyRound className="h-4 w-4" />
+                  <AlertDescription>
+                    Enter your email address and we'll send you a link to reset your password.
+                  </AlertDescription>
+                </Alert>
+                
+                <form onSubmit={handlePasswordReset} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email">Email</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      required
+                      disabled={isResetting}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isResetting}>
+                    {isResetting ? "Sending..." : "Send Reset Link"}
+                  </Button>
+                  <div className="text-center mt-4">
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="text-sm text-muted-foreground"
+                      onClick={() => setActiveTab("signin")}
+                    >
+                      Back to Sign In
+                    </Button>
+                  </div>
+                </form>
+              </TabsContent>
             </Tabs>
 
           </CardContent>
         </Card>
 
-        {/* Debug section - show current auth state */}
-        {user && (
-          <Card className="mt-4 bg-yellow-50 border-yellow-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Debug: Current Auth State</CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs space-y-2">
-              <p><strong>User ID:</strong> {user.id}</p>
-              <p><strong>Role:</strong> {userRole || 'Loading...'}</p>
-              <p><strong>Current Route:</strong> {location.pathname}</p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRefreshAuth}
-                disabled={isLoading}
-                className="w-full mt-2"
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                {isLoading ? "Refreshing..." : "Refresh Auth State"}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        {/* Enhanced Debug Panel */}
+        <AuthDebugPanel isVisible={!!user} />
       </div>
     </div>
   )

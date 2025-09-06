@@ -503,6 +503,10 @@ export type Database = {
         Args: { subdomain_input: string }
         Returns: string
       }
+      get_user_role_enhanced: {
+        Args: { user_uuid?: string }
+        Returns: string
+      }
       log_sensitive_access: {
         Args: {
           action_type: string
