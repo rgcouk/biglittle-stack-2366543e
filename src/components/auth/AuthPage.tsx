@@ -9,12 +9,13 @@ import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserRole } from "@/hooks/useUserRole"
 import { useFacilityContext } from "@/hooks/useFacilityContext"
-import { ArrowLeft, Building, Users, AlertCircle, RefreshCw, KeyRound } from "lucide-react"
+import { ArrowLeft, Building, Users, AlertCircle, RefreshCw, KeyRound, Wifi, WifiOff } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { forceAuthRefresh } from "@/utils/authUtils"
 import { supabase } from "@/integrations/supabase/client"
 import { AuthDebugPanel } from "@/components/auth/AuthDebugPanel"
+import { checkOnlineStatus, setupNetworkListeners } from "@/utils/networkUtils"
 
 const AuthPage = () => {
   const [email, setEmail] = useState("")
@@ -24,6 +25,7 @@ const AuthPage = () => {
   const [activeTab, setActiveTab] = useState("signin")
   const [resetEmail, setResetEmail] = useState("")
   const [isResetting, setIsResetting] = useState(false)
+  const [isOnline, setIsOnline] = useState(checkOnlineStatus())
   const [searchParams] = useSearchParams()
   
   const { user, signUp, signIn } = useAuth()
@@ -62,6 +64,29 @@ const AuthPage = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Set up network status listeners
+    const cleanupNetworkListeners = setupNetworkListeners(
+      () => {
+        setIsOnline(true);
+        toast({
+          title: "Connection Restored",
+          description: "You're back online. Authentication should work normally now."
+        });
+      },
+      () => {
+        setIsOnline(false);
+        toast({
+          title: "Connection Lost", 
+          description: "You're offline. Please check your internet connection.",
+          variant: "destructive"
+        });
+      }
+    );
+
+    return cleanupNetworkListeners;
+  }, [toast]);
 
   useEffect(() => {
     if (user && userRole) {
@@ -222,6 +247,23 @@ const AuthPage = () => {
 
         <Card className="shadow-elevated">
           <CardHeader className="text-center space-y-4">
+            {/* Network Status Indicator */}
+            {!isOnline && (
+              <Alert variant="destructive" className="mb-4">
+                <WifiOff className="h-4 w-4" />
+                <AlertDescription>
+                  You're currently offline. Please check your internet connection.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {isOnline && (
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-2">
+                <Wifi className="h-4 w-4 text-green-500" />
+                <span>Connected</span>
+              </div>
+            )}
+            
             {isSubdomain ? (
               <div className="mx-auto p-3 bg-primary/10 rounded-full w-fit">
                 <Users className="h-8 w-8 text-primary" />
@@ -270,8 +312,8 @@ const AuthPage = () => {
                       disabled={isLoading}
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
+                  <Button type="submit" className="w-full" disabled={isLoading || !isOnline}>
+                    {isLoading ? "Signing in..." : !isOnline ? "Offline - Check Connection" : "Sign In"}
                   </Button>
                   <div className="text-center mt-4">
                     <Button
@@ -332,8 +374,8 @@ const AuthPage = () => {
                       disabled={isLoading}
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : `Sign Up as ${isSubdomain ? 'Customer' : 'Provider'}`}
+                  <Button type="submit" className="w-full" disabled={isLoading || !isOnline}>
+                    {isLoading ? "Creating account..." : !isOnline ? "Offline - Check Connection" : `Sign Up as ${isSubdomain ? 'Customer' : 'Provider'}`}
                   </Button>
                 </form>
               </TabsContent>
