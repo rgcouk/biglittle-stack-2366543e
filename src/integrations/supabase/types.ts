@@ -471,15 +471,6 @@ export type Database = {
       }
     }
     Functions: {
-      check_rate_limit: {
-        Args: {
-          max_attempts?: number
-          operation_type: string
-          user_id: string
-          window_minutes?: number
-        }
-        Returns: boolean
-      }
       check_rate_limit_enhanced: {
         Args: {
           max_attempts?: number
