@@ -391,72 +391,13 @@ export type Database = {
       }
     }
     Views: {
-      facilities_public: {
-        Row: {
-          address: string | null
-          created_at: string | null
-          description: string | null
-          id: string | null
-          name: string | null
-          postcode: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          name?: string | null
-          postcode?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          address?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          name?: string | null
-          postcode?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      facilities_safe_public: {
-        Row: {
-          address: string | null
-          created_at: string | null
-          description: string | null
-          id: string | null
-          name: string | null
-          postcode: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          name?: string | null
-          postcode?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          address?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string | null
-          name?: string | null
-          postcode?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      units_public_discovery: {
+      units_secure_discovery: {
         Row: {
           available_count: number | null
           facility_id: string | null
-          max_price_pence: number | null
-          min_price_pence: number | null
+          max_price_range_pounds: number | null
+          min_price_range_pounds: number | null
+          pricing_type: string | null
           size_category: string | null
         }
         Relationships: [
@@ -471,6 +412,10 @@ export type Database = {
       }
     }
     Functions: {
+      check_facility_access_rate_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       check_rate_limit_enhanced: {
         Args: {
           max_attempts?: number
