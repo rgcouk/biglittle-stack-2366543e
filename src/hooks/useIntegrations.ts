@@ -78,7 +78,7 @@ export function useCreateIntegration() {
     mutationFn: async (integration: Omit<Integration, 'id' | 'provider_id' | 'created_at' | 'updated_at'>) => {
       // Get the current user's provider profile ID
       const { data: providerData, error: providerError } = await supabase
-        .rpc('get_user_provider_profile_id');
+        .rpc('get_current_user_provider_id');
       
       if (providerError) throw providerError;
       if (!providerData) throw new Error('User is not a provider');
@@ -87,7 +87,7 @@ export function useCreateIntegration() {
         .from('integrations')
         .insert({
           ...integration,
-          provider_id: providerData,
+          provider_id: providerData as string,
         })
         .select()
         .single();

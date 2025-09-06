@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { FacilityProvider } from "@/components/providers/FacilityProvider";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { PerformanceMonitor } from "@/components/ui/performance-monitor";
+import { useSecurityHeaders } from "@/hooks/useSecurityMonitoring";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AuthPage from "@/components/auth/AuthPage";
 import Index from "./pages/Index";
@@ -25,12 +26,35 @@ import BillingManagement from "./pages/provider/BillingManagement";
 import CustomersManagement from "./pages/provider/CustomersManagement";
 import SiteCustomization from "./pages/provider/SiteCustomization";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors (client errors) for security reasons
+        if (error?.status >= 400 && error?.status < 500) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+    mutations: {
+      retry: false, // Don't retry mutations automatically for security
+    },
+  },
+});
+
+function SecurityProvider({ children }: { children: React.ReactNode }) {
+  useSecurityHeaders();
+  return <>{children}</>;
+}
 
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+      <SecurityProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -75,8 +99,9 @@ const App = () => (
           </AuthProvider>
           </FacilityProvider>
         </BrowserRouter>
-        <PerformanceMonitor />
-      </TooltipProvider>
+          <PerformanceMonitor />
+        </TooltipProvider>
+      </SecurityProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );

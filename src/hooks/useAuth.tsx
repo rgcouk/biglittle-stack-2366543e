@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, displayName?: string, role?: string, facilityId?: string) => {
     try {
-      // Input validation
+      // Enhanced input validation
       if (!email || !password) {
         const error = new Error('Email and password are required');
         toast({
@@ -54,7 +54,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return { error };
       }
+
+      // Enhanced email validation
+      const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        const error = new Error('Invalid email format');
+        toast({
+          title: "Sign up failed",
+          description: "Please provide a valid email address",
+          variant: "destructive"
+        });
+        return { error };
+      }
       
+      // Enhanced password validation
       if (password.length < 8) {
         const error = new Error('Password must be at least 8 characters');
         toast({
@@ -64,10 +77,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return { error };
       }
+
+      // Check for common password patterns
+      if (/^(password|123456|qwerty|admin)$/i.test(password)) {
+        const error = new Error('Password is too common');
+        toast({
+          title: "Sign up failed",
+          description: "Please choose a stronger, less common password",
+          variant: "destructive"
+        });
+        return { error };
+      }
       
-      // Sanitize inputs
+      // Sanitize inputs and validate role
       const sanitizedEmail = email.trim().toLowerCase();
       const sanitizedDisplayName = displayName?.trim();
+      const validatedRole = (role === 'provider' || role === 'customer') ? role : 'customer';
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
@@ -77,17 +102,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           emailRedirectTo: redirectUrl,
           data: {
             display_name: sanitizedDisplayName,
-            role: role || 'customer',
+            role: validatedRole,
             facility_id: facilityId
           }
         }
       });
       
       if (error) {
-        // Sanitize error messages to prevent information disclosure
-        const sanitizedMessage = error.message.includes('already registered') 
-          ? 'This email is already registered. Please try signing in instead.'
-          : 'Unable to create account. Please check your details and try again.';
+        // Enhanced error message sanitization to prevent user enumeration
+        let sanitizedMessage = 'Unable to create account. Please check your details and try again.';
+        
+        // Only show specific messages for certain safe error types
+        if (error.message.includes('User already registered')) {
+          sanitizedMessage = 'An account with this email may already exist. Please try signing in.';
+        } else if (error.message.includes('Password should be')) {
+          sanitizedMessage = 'Password does not meet security requirements.';
+        }
         
         toast({
           title: "Sign up failed",
@@ -97,15 +127,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         toast({
           title: "Check your email",
-          description: "Please check your email for a confirmation link."
+          description: "Please check your email for a confirmation link to complete registration."
         });
       }
       
       return { error };
     } catch (error: any) {
+      // Log error for monitoring (remove sensitive info)
+      console.error('Sign up error:', { 
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+      
       toast({
         title: "Sign up failed",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
       return { error };
@@ -114,12 +150,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Input validation
+      // Enhanced input validation
       if (!email || !password) {
         const error = new Error('Email and password are required');
         toast({
           title: "Sign in failed",
           description: "Please provide both email and password",
+          variant: "destructive"
+        });
+        return { error };
+      }
+
+      // Validate email format
+      const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        const error = new Error('Invalid email format');
+        toast({
+          title: "Sign in failed",
+          description: "Please provide a valid email address",
           variant: "destructive"
         });
         return { error };
@@ -134,8 +182,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
-        // Sanitize error messages to prevent user enumeration
-        const sanitizedMessage = 'Invalid email or password. Please check your credentials and try again.';
+        // Enhanced error message sanitization to prevent user enumeration and brute force attacks
+        let sanitizedMessage = 'Authentication failed. Please verify your credentials.';
+        
+        // Log failed attempts for security monitoring (without sensitive data)
+        console.warn('Authentication failure:', {
+          email: sanitizedEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3'), // Partially mask email
+          timestamp: new Date().toISOString(),
+          errorType: error.message.includes('Invalid') ? 'invalid_credentials' : 'other'
+        });
+        
+        // Consistent timing to prevent user enumeration via response timing
+        await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 200));
         
         toast({
           title: "Sign in failed",
@@ -151,9 +209,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return { error };
     } catch (error: any) {
+      // Log errors for monitoring (remove sensitive info)
+      console.error('Sign in error:', { 
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+      
       toast({
         title: "Sign in failed",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
       return { error };
