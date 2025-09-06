@@ -496,6 +496,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_current_user_provider_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -506,10 +510,6 @@ export type Database = {
       }
       get_facility_by_subdomain: {
         Args: { subdomain_input: string }
-        Returns: string
-      }
-      get_user_provider_profile_id: {
-        Args: Record<PropertyKey, never>
         Returns: string
       }
       log_sensitive_access: {
