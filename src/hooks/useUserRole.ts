@@ -21,14 +21,9 @@ export function useUserRole() {
 
       if (profileError) {
         console.error('useUserRole: Profile query error:', profileError);
-        // Fallback to RPC function
-        const { data: rpcData, error: rpcError } = await supabase.rpc('get_current_user_role');
-        if (rpcError) {
-          console.error('useUserRole: RPC error:', rpcError);
-          throw rpcError;
-        }
-        console.log('useUserRole: Got role from RPC:', rpcData);
-        return rpcData || 'customer';
+        // Fallback to default role instead of RPC to avoid auth loops
+        console.log('useUserRole: Defaulting to customer role due to profile error');
+        return 'customer';
       }
 
       console.log('useUserRole: Got role from profiles table:', profile.role);
