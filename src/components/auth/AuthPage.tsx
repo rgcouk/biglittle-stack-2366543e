@@ -379,8 +379,8 @@ const AuthPage = () => {
           </CardContent>
         </Card>
 
-        {/* Enhanced Debug Panel */}
-        <AuthDebugPanel isVisible={!!user} />
+        {/* Enhanced Debug Panel - Only show in development or when there are auth issues */}
+        <AuthDebugPanel isVisible={process.env.NODE_ENV === 'development' || (!user && (userRole === undefined))} />
       </div>
     </div>
   )

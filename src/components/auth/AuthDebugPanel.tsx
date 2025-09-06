@@ -67,7 +67,9 @@ export function AuthDebugPanel({ isVisible }: AuthDebugPanelProps) {
           };
 
           // Test RPC function
-          const { data: rpcData, error: rpcError } = await supabase.rpc('get_user_role_enhanced');
+          const { data: rpcData, error: rpcError } = await supabase.rpc('get_user_role_enhanced', {
+            user_uuid: user.id
+          });
           diagnostics.database.rpcFunction = {
             success: !rpcError,
             error: rpcError?.message,

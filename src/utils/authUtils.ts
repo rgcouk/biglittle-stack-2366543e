@@ -9,10 +9,8 @@ export const clearAuthCache = () => {
 
 export const forceAuthRefresh = async () => {
   try {
-    // Force refresh the current session
-    const { data, error } = await import('@/integrations/supabase/client').then(module => 
-      module.supabase.auth.refreshSession()
-    );
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase.auth.refreshSession();
     
     if (error) {
       console.error('Failed to refresh session:', error);
