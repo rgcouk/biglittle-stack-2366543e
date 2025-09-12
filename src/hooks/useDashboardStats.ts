@@ -44,17 +44,6 @@ export function useDashboardStats() {
             occupancyRate: 0,
           };
         }
-      } catch (error) {
-        console.error('Dashboard stats error:', error);
-        return {
-          totalUnits: 0,
-          availableUnits: 0,
-          occupiedUnits: 0,
-          activeCustomers: 0,
-          monthlyRevenue: 0,
-          occupancyRate: 0,
-        };
-      }
 
         const facilityIds = facilities.map(f => f.id);
 
