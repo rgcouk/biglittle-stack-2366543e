@@ -138,6 +138,44 @@ export type Database = {
         }
         Relationships: []
       }
+      facility_settings: {
+        Row: {
+          access_features: Json | null
+          created_at: string | null
+          facility_id: string
+          features: Json | null
+          id: string
+          operating_hours: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_features?: Json | null
+          created_at?: string | null
+          facility_id: string
+          features?: Json | null
+          id?: string
+          operating_hours?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_features?: Json | null
+          created_at?: string | null
+          facility_id?: string
+          features?: Json | null
+          id?: string
+          operating_hours?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_settings_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: true
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           api_key_encrypted: string | null
@@ -266,6 +304,88 @@ export type Database = {
             columns: ["facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_notifications: boolean | null
+          id: string
+          marketing_notifications: boolean | null
+          notification_types: Json | null
+          provider_id: string
+          push_notifications: boolean | null
+          sms_notifications: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          marketing_notifications?: boolean | null
+          notification_types?: Json | null
+          provider_id: string
+          push_notifications?: boolean | null
+          sms_notifications?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          marketing_notifications?: boolean | null
+          notification_types?: Json | null
+          provider_id?: string
+          push_notifications?: boolean | null
+          sms_notifications?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_notification_preferences_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_security_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          login_alerts_enabled: boolean | null
+          provider_id: string
+          session_timeout_minutes: number | null
+          two_factor_enabled: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          login_alerts_enabled?: boolean | null
+          provider_id: string
+          session_timeout_minutes?: number | null
+          two_factor_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          login_alerts_enabled?: boolean | null
+          provider_id?: string
+          session_timeout_minutes?: number | null
+          two_factor_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_security_settings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

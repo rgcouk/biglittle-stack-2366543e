@@ -1,13 +1,23 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink, Building2, Users, CreditCard, TrendingUp, Loader2, Home } from "lucide-react";
-import { Link } from "react-router-dom";
+import React from 'react';
 import { QuickStatsWidget, RecentActivityWidget, OccupancyProgressWidget, QuickActionsWidget } from '@/components/provider/DashboardWidgets';
-import { DashboardSkeleton } from '@/components/ui/loading-skeleton';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
+import { useNotificationSystem } from '@/hooks/useNotificationSystem';
+import { EnhancedErrorBoundary } from '@/components/ui/error-boundary-enhanced';
+import { NotificationCenter } from '@/components/provider/NotificationCenter';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { DashboardSkeleton } from '@/components/ui/loading-skeleton';
+import { ArrowRight, BarChart3, Users, CreditCard, TrendingUp, Building2, Bell } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function ProviderDashboard() {
   const { data: stats, isLoading } = useDashboardStats();
+  const { unreadCount } = useNotificationSystem();
+  
+  // Enable real-time updates
+  useRealtimeDashboard();
 
   if (isLoading) {
     return (
@@ -23,30 +33,49 @@ export default function ProviderDashboard() {
 
   return (
     <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Provider Dashboard</h1>
-        <p className="text-muted-foreground">Manage your storage facility operations</p>
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Provider Dashboard</h1>
+          <p className="text-muted-foreground">Manage your storage facility operations</p>
+        </div>
+        {unreadCount > 0 && (
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <Bell className="w-3 h-3" />
+            {unreadCount} new notifications
+          </Badge>
+        )}
       </div>
 
       <div className="space-y-8">
         {/* Enhanced Stats Cards */}
-        <QuickStatsWidget />
+        <EnhancedErrorBoundary>
+          <QuickStatsWidget />
+        </EnhancedErrorBoundary>
 
         {/* Main Dashboard Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
           {/* Occupancy Progress */}
           <div className="lg:col-span-2">
-            <OccupancyProgressWidget />
+            <EnhancedErrorBoundary>
+              <OccupancyProgressWidget />
+            </EnhancedErrorBoundary>
           </div>
           
           {/* Quick Actions */}
           <div className="lg:col-span-2">
-            <QuickActionsWidget />
+            <EnhancedErrorBoundary>
+              <QuickActionsWidget />
+            </EnhancedErrorBoundary>
           </div>
 
-          {/* Recent Activity */}
-          <div className="lg:col-span-3">
-            <RecentActivityWidget />
+          {/* Recent Activity & Notifications */}
+          <div className="lg:col-span-3 space-y-6">
+            <EnhancedErrorBoundary>
+              <RecentActivityWidget />
+            </EnhancedErrorBoundary>
+            <EnhancedErrorBoundary>
+              <NotificationCenter />
+            </EnhancedErrorBoundary>
           </div>
         </div>
 
@@ -67,8 +96,12 @@ export default function ProviderDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="text-2xl font-bold mb-2">{stats?.totalUnits || 0}</div>
+                <p className="text-xs text-muted-foreground mb-4">Total units</p>
                 <Button asChild className="w-full">
-                  <Link to="/provider/units">Manage Units</Link>
+                  <Link to="/provider/units">
+                    Manage Units <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -86,8 +119,12 @@ export default function ProviderDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="text-2xl font-bold mb-2">{stats?.activeCustomers || 0}</div>
+                <p className="text-xs text-muted-foreground mb-4">Active customers</p>
                 <Button asChild className="w-full">
-                  <Link to="/provider/customers">Manage Customers</Link>
+                  <Link to="/provider/customers">
+                    Manage Customers <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -105,8 +142,12 @@ export default function ProviderDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="text-2xl font-bold mb-2">£{stats?.monthlyRevenue?.toFixed(2) || '0.00'}</div>
+                <p className="text-xs text-muted-foreground mb-4">Monthly revenue</p>
                 <Button asChild className="w-full">
-                  <Link to="/provider/billing">View Billing</Link>
+                  <Link to="/provider/billing">
+                    View Billing <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -124,8 +165,12 @@ export default function ProviderDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="text-2xl font-bold mb-2">{stats?.occupancyRate || 0}%</div>
+                <p className="text-xs text-muted-foreground mb-4">Occupancy rate</p>
                 <Button asChild className="w-full">
-                  <Link to="/provider/analytics">View Analytics</Link>
+                  <Link to="/provider/analytics">
+                    View Analytics <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -144,7 +189,9 @@ export default function ProviderDashboard() {
               </CardHeader>
               <CardContent>
                 <Button asChild className="w-full">
-                  <Link to="/provider/customization">Advanced Features</Link>
+                  <Link to="/provider/customization">
+                    Advanced Features <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
