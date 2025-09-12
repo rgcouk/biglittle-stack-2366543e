@@ -18,47 +18,44 @@ export function useAuditLog(limit: number = 50) {
   return useQuery({
     queryKey: ['audit-log', limit],
     queryFn: async () => {
-      // Mock audit log data since we don't have an audit_logs table yet
-      const mockAuditLog: AuditLogEntry[] = [
-        {
-          id: '1',
-          user_id: 'user-1',
-          action: 'create_unit',
-          resource_type: 'unit',
-          resource_id: 'unit-123',
-          details: { unit_number: 'A-101', size: 'small' },
-          ip_address: '192.168.1.1',
-          user_agent: 'Mozilla/5.0...',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          user_name: 'John Provider'
-        },
-        {
-          id: '2',
-          user_id: 'user-1',
-          action: 'update_facility',
-          resource_type: 'facility',
-          resource_id: 'facility-456',
-          details: { name: 'Updated Facility Name' },
-          ip_address: '192.168.1.1',
-          user_agent: 'Mozilla/5.0...',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-          user_name: 'John Provider'
-        },
-        {
-          id: '3',
-          user_id: 'user-1',
-          action: 'delete_unit',
-          resource_type: 'unit',
-          resource_id: 'unit-789',
-          details: { unit_number: 'B-202', reason: 'Out of service' },
-          ip_address: '192.168.1.1',
-          user_agent: 'Mozilla/5.0...',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-          user_name: 'John Provider'
+      try {
+        const { data: auditLogs, error } = await supabase
+          .from('security_audit_log')
+          .select(`
+            id,
+            user_id,
+            action,
+            table_name,
+            record_id,
+            details,
+            ip_address,
+            created_at
+          `)
+          .order('created_at', { ascending: false })
+          .limit(limit);
+
+        if (error) {
+          console.error('Failed to fetch audit logs:', error);
+          return [];
         }
-      ];
-      
-      return mockAuditLog.slice(0, limit);
+
+        // Transform data to match expected interface
+        return (auditLogs || []).map(log => ({
+          id: log.id,
+          user_id: log.user_id || 'unknown',
+          action: log.action || 'unknown_action',
+          resource_type: log.table_name || 'unknown',
+          resource_id: log.record_id || 'unknown',
+          details: log.details || {},
+          ip_address: log.ip_address?.toString() || 'unknown',
+          user_agent: 'N/A',
+          timestamp: log.created_at || new Date().toISOString(),
+          user_name: 'Provider User'
+        }));
+      } catch (error) {
+        console.error('Audit log query failed:', error);
+        return [];
+      }
     },
     staleTime: 30000, // 30 seconds
   });

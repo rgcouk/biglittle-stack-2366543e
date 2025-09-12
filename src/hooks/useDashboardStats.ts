@@ -5,13 +5,47 @@ export function useDashboardStats() {
   return useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      // Get facility data for the current provider
-      const { data: facilities } = await supabase
-        .from('facilities')
-        .select('id')
-        .eq('provider_id', (await supabase.from('profiles').select('id').eq('user_id', (await supabase.auth.getUser()).data.user?.id).single()).data?.id);
+      try {
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          throw new Error('User not authenticated');
+        }
 
-      if (!facilities?.length) {
+        // Get provider profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, role')
+          .eq('user_id', user.id)
+          .eq('role', 'provider')
+          .single();
+
+        if (profileError || !profile) {
+          throw new Error('Provider profile not found');
+        }
+
+        // Get facilities for this provider
+        const { data: facilities, error: facilitiesError } = await supabase
+          .from('facilities')
+          .select('id')
+          .eq('provider_id', profile.id);
+
+        if (facilitiesError) {
+          throw new Error('Failed to fetch facilities');
+        }
+
+        if (!facilities?.length) {
+          return {
+            totalUnits: 0,
+            availableUnits: 0,
+            occupiedUnits: 0,
+            activeCustomers: 0,
+            monthlyRevenue: 0,
+            occupancyRate: 0,
+          };
+        }
+      } catch (error) {
+        console.error('Dashboard stats error:', error);
         return {
           totalUnits: 0,
           availableUnits: 0,
