@@ -511,25 +511,7 @@ export type Database = {
       }
     }
     Views: {
-      units_secure_discovery: {
-        Row: {
-          available_count: number | null
-          facility_id: string | null
-          max_price_range_pounds: number | null
-          min_price_range_pounds: number | null
-          pricing_type: string | null
-          size_category: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "units_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       check_facility_access_rate_limit: {
@@ -567,6 +549,17 @@ export type Database = {
       get_facility_by_subdomain: {
         Args: { subdomain_input: string }
         Returns: string
+      }
+      get_units_secure_discovery: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          available_count: number
+          facility_id: string
+          max_price_range_pounds: number
+          min_price_range_pounds: number
+          pricing_type: string
+          size_category: string
+        }[]
       }
       get_user_role_enhanced: {
         Args: { user_uuid?: string }
